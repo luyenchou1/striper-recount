@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Striper Recount</title>
+<meta name="description" content="NOAA recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. A song, and the numbers to play with.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Striper Recount">
+<meta property="og:description" content="NOAA recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. A song, and the numbers to play with.">
+<meta property="og:url" content="https://luyenchou1.github.io/striper-recount/">
+<meta property="og:image" content="https://luyenchou1.github.io/striper-recount/video/poster.jpg">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Lilita+One&family=Patrick+Hand&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-mode="site" data-page="" class="site">
+<header class="topbar"><a class="brand" href="#top">The Striper Recount</a><nav class="line" id="dots" aria-label="The interactives"></nav></header>
+<section class="hero" id="top" aria-label="The song">
+  <div class="tv">
+    <div class="screen">
+      <video id="film" src="video/striper-recount.mp4" poster="video/poster.jpg" preload="metadata" playsinline></video>
+      <button class="bigplay" id="bigplay" type="button"><span><span aria-hidden="true">&#9654;</span> Play the song</span></button>
+    </div>
+    <div class="knobs">
+      <button class="knob" id="kPlay" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>Play</span></button>
+      <button class="knob" id="kSound" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>Sound on</span></button>
+      <div class="speaker" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="hero-copy">
+    <h1>The Striper Recount</h1>
+    <p>NOAA just recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. Watch the song, then work the numbers yourself.</p>
+    <a class="btn cue" href="#count">Start the interactives <span class="fishy" aria-hidden="true"></span></a>
+  </div>
+</section>
+<script>
+(function(){var v=document.getElementById('film'),b=document.getElementById('bigplay'),kp=document.getElementById('kPlay'),ks=document.getElementById('kSound');
+  function sync(){var on=!v.paused&&!v.ended;kp.setAttribute('aria-pressed',String(on));kp.querySelector('span').textContent=on?'Pause':'Play';
+    ks.setAttribute('aria-pressed',String(v.muted));ks.querySelector('span').textContent=v.muted?'Sound off':'Sound on';}
+  function go(){b.hidden=true;v.controls=true;var p=v.play();if(p&&p.catch)p.catch(function(){b.hidden=false;});}
+  b.addEventListener('click',go);
+  kp.addEventListener('click',function(){if(v.paused||v.ended)go();else v.pause();});
+  ks.addEventListener('click',function(){v.muted=!v.muted;sync();});
+  ['play','pause','ended','volumechange'].forEach(function(e){v.addEventListener(e,sync);});
+  v.addEventListener('play',function(){b.hidden=true;v.controls=true;});sync();})();
+</script>
+<main id="main"></main>
+<script src="assets/engine.js"></script>
+<script src="assets/kit.js"></script>
+<script src="assets/characters.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/sets.js"></script>
+<script src="assets/pages/count.js"></script>
+<script src="assets/pages/calendar.js"></script>
+<script src="assets/pages/ghosts.js"></script>
+<script src="assets/pages/pie.js"></script>
+<script src="assets/pages/removals.js"></script>
+<script src="assets/pages/states.js"></script>
+<script src="assets/pages/next.js"></script>
+<script>SITE.boot();</script>
+</body>
+</html>
