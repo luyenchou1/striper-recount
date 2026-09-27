@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Striper Recount</title>
 <meta name="description" content="NOAA recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. A song, and the numbers to play with.">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.svg?v=e86d05a1" type="image/svg+xml">
 <meta name="robots" content="noindex, nofollow">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The Striper Recount">
@@ -18,14 +18,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Lilita+One&family=Patrick+Hand&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=b3c9e97d">
 </head>
 <body data-mode="site" data-page="" class="site">
 <header class="topbar"><a class="brand" href="#top">The Striper Recount</a><nav class="line" id="dots" aria-label="The interactives"></nav></header>
 <section class="hero" id="top" aria-label="The song">
   <div class="tv">
     <div class="screen">
-      <video id="film" src="video/striper-recount.mp4" poster="video/poster.jpg" preload="metadata" playsinline></video>
+      <video id="film" src="video/striper-recount.mp4?v=51bf9c66" poster="video/poster.jpg?v=2aa5f123" preload="metadata" playsinline></video>
       <button class="bigplay" id="bigplay" type="button"><span><span aria-hidden="true">&#9654;</span> Play the song</span></button>
     </div>
     <div class="knobs">
@@ -52,25 +52,27 @@
   v.addEventListener('play',function(){b.hidden=true;v.controls=true;});
   // stop the song when the reader leaves it: a jump to the interactives (the Start button or a chapter
   // link), or scrolling the TV mostly off screen. It doesn't restart on its own when they scroll back.
-  function away(){if(!v.paused&&document.pictureInPictureElement!==v&&!document.fullscreenElement)v.pause();}
+  // (never while it fills the screen: iPhone fullscreen and picture in picture don't use the standard API)
+  function big(){return document.fullscreenElement||document.webkitFullscreenElement||document.pictureInPictureElement===v||v.webkitDisplayingFullscreen||(v.webkitPresentationMode&&v.webkitPresentationMode!=='inline');}
+  function away(){if(!v.paused&&!big())v.pause();}
   document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"],a[href$=".html"]');if(a&&a.getAttribute('href')!=='#top')away();});
   if('IntersectionObserver' in window)new IntersectionObserver(function(es){if(es[0].intersectionRatio<0.5)away();},{threshold:[0,0.25,0.5,0.75,1]}).observe(v);
   sync();})();
 </script>
 <main id="main"></main>
-<script src="assets/engine.js"></script>
-<script src="assets/kit.js"></script>
-<script src="assets/characters.js"></script>
-<script src="assets/data.js"></script>
-<script src="assets/site.js"></script>
-<script src="assets/sets.js"></script>
-<script src="assets/pages/count.js"></script>
-<script src="assets/pages/calendar.js"></script>
-<script src="assets/pages/ghosts.js"></script>
-<script src="assets/pages/pie.js"></script>
-<script src="assets/pages/removals.js"></script>
-<script src="assets/pages/states.js"></script>
-<script src="assets/pages/next.js"></script>
+<script src="assets/engine.js?v=059f5ee4"></script>
+<script src="assets/kit.js?v=9514e4a2"></script>
+<script src="assets/characters.js?v=803fe709"></script>
+<script src="assets/data.js?v=b7207e72"></script>
+<script src="assets/site.js?v=621dfed5"></script>
+<script src="assets/sets.js?v=d7dff41b"></script>
+<script src="assets/pages/count.js?v=4f397dbc"></script>
+<script src="assets/pages/calendar.js?v=1dcbaee4"></script>
+<script src="assets/pages/ghosts.js?v=9a1392cb"></script>
+<script src="assets/pages/pie.js?v=603cd6e3"></script>
+<script src="assets/pages/removals.js?v=05430bc9"></script>
+<script src="assets/pages/states.js?v=5d7a9b17"></script>
+<script src="assets/pages/next.js?v=00ee0ec4"></script>
 <script>SITE.boot();</script>
 </body>
 </html>

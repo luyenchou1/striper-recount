@@ -152,6 +152,7 @@ details.more p{font-size:15px;margin:8px 0 0}
 .knob[aria-pressed="true"] i{transform:rotate(120deg)}
 .knob:active i{box-shadow:0 2px 0 var(--ink)}
 .speaker{width:70px;height:60px;border-radius:10px;background:repeating-linear-gradient(0deg,var(--ink) 0 3px,transparent 3px 8px);opacity:.55}
+.bigplay[hidden]{display:none}   /* once the song starts, the player's own controls get every tap */
 .bigplay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 2.2%;background:transparent;border:0;cursor:pointer}
 .bigplay span{display:flex;align-items:center;gap:10px;padding:clamp(6px,.8vw,11px) clamp(14px,1.6vw,24px);border-radius:999px;background:var(--orange);color:var(--white);border:4px solid var(--ink);font:400 clamp(14px,1.5vw,23px)/1 var(--f-label);box-shadow:inset 0 -6px 0 var(--sh-orange),5px 5px 0 var(--ink);animation:bob 1.6s steps(4,end) infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
