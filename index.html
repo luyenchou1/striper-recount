@@ -49,7 +49,13 @@
   kp.addEventListener('click',function(){if(v.paused||v.ended)go();else v.pause();});
   ks.addEventListener('click',function(){v.muted=!v.muted;sync();});
   ['play','pause','ended','volumechange'].forEach(function(e){v.addEventListener(e,sync);});
-  v.addEventListener('play',function(){b.hidden=true;v.controls=true;});sync();})();
+  v.addEventListener('play',function(){b.hidden=true;v.controls=true;});
+  // stop the song when the reader leaves it: a jump to the interactives (the Start button or a chapter
+  // link), or scrolling the TV mostly off screen. It doesn't restart on its own when they scroll back.
+  function away(){if(!v.paused&&document.pictureInPictureElement!==v&&!document.fullscreenElement)v.pause();}
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"],a[href$=".html"]');if(a&&a.getAttribute('href')!=='#top')away();});
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){if(es[0].intersectionRatio<0.5)away();},{threshold:[0,0.25,0.5,0.75,1]}).observe(v);
+  sync();})();
 </script>
 <main id="main"></main>
 <script src="assets/engine.js"></script>
