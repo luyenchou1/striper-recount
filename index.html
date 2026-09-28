@@ -3,30 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Striper Recount</title>
-<meta name="description" content="NOAA recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. A song, and the numbers to play with.">
+<title>The Striper Recount: NOAA’s striped bass recount, explained in a song</title>
+<meta name="description" content="In August 2026, NOAA corrected its estimates of recreational fishing trips, and the striper numbers came down with them. Anglers caught far fewer fish than the old estimates said. That doesn’t leave more fish in the water: stock assessments work backward from the catch, so if the fishing rate holds, a smaller catch points to a smaller population. A song, and the numbers to play with.">
 <link rel="icon" href="assets/favicon.svg?v=e86d05a1" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png?v=9a60ef71" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=cb6458f2">
 <meta name="robots" content="noindex, nofollow">
 <meta property="og:type" content="website">
-<meta property="og:title" content="The Striper Recount">
-<meta property="og:description" content="NOAA recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. A song, and the numbers to play with.">
+<meta property="og:site_name" content="The Striper Recount">
+<meta property="og:title" content="The Striper Recount: NOAA’s striped bass recount, explained in a song">
+<meta property="og:description" content="In August 2026, NOAA corrected its estimates of recreational fishing trips, and the striper numbers came down with them. Anglers caught far fewer fish than the old estimates said. That doesn’t leave more fish in the water: stock assessments work backward from the catch, so if the fishing rate holds, a smaller catch points to a smaller population. A song, and the numbers to play with.">
 <meta property="og:url" content="https://luyenchou1.github.io/striper-recount/">
-<meta property="og:image" content="https://luyenchou1.github.io/striper-recount/video/poster.jpg">
+<meta property="og:image" content="https://luyenchou1.github.io/striper-recount/video/poster.jpg?v=2aa5f123">
 <meta property="og:image:width" content="1920">
 <meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="The title card of The Striper Recount: the title in red letters on a sunburst, a ribbon reading “A song about the 2026 striped bass recount”, Kit waving on the left and the Striper in his hat on the right.">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Lilita+One&family=Patrick+Hand&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=b3c9e97d">
+<link rel="stylesheet" href="assets/site.css?v=3ecff5bb">
+<link rel="stylesheet" href="assets/frame.css?v=a72daa64">
+<link rel="stylesheet" href="assets/delight.css?v=407c55d2">
 </head>
-<body data-mode="site" data-page="" class="site">
-<header class="topbar"><a class="brand" href="#top">The Striper Recount</a><nav class="line" id="dots" aria-label="The interactives"></nav></header>
+<body data-mode="site" data-page="" data-file="" class="site">
+<header class="topbar"><a class="brand" href="#top">The Striper Recount</a><nav class="line" id="dots" aria-label="The 7 pages"></nav></header>
 <section class="hero" id="top" aria-label="The song">
   <div class="tv">
     <div class="screen">
-      <video id="film" src="video/striper-recount.mp4?v=51bf9c66" poster="video/poster.jpg?v=2aa5f123" preload="metadata" playsinline></video>
-      <button class="bigplay" id="bigplay" type="button"><span><span aria-hidden="true">&#9654;</span> Play the song</span></button>
+      <video id="film" src="video/striper-recount.mp4?v=51bf9c66" poster="video/poster.jpg?v=2aa5f123" preload="metadata" playsinline aria-label="The Striper Recount music video, 3 minutes 50 seconds, captioned"></video>
+      <button class="bigplay" id="bigplay" type="button"><span><span aria-hidden="true">&#9654;</span> Play the song (3:50)</span></button>
+      <a class="handoff" id="handoff" href="#count" hidden><span>Now you try it: 1 of 7, The count <span class="fishy" aria-hidden="true"></span></span></a>
+      <div class="endpills" id="endpills" hidden><a class="pill" href="#count">Work the numbers <span class="fishy" aria-hidden="true"></span></a><button class="pill ghost" id="again" type="button"><span aria-hidden="true">&#8634;</span> Watch again</button></div>
     </div>
     <div class="knobs">
       <button class="knob" id="kPlay" type="button" aria-pressed="false"><i aria-hidden="true"></i><span>Play</span></button>
@@ -36,20 +44,178 @@
   </div>
   <div class="hero-copy">
     <h1>The Striper Recount</h1>
-    <p>NOAA just recounted striper fishing trips. Anglers caught far fewer fish than the old estimates said, which means fewer stripers were out there to begin with. Watch the song, then work the numbers yourself.</p>
-    <a class="btn cue" href="#count">Start the interactives <span class="fishy" aria-hidden="true"></span></a>
+    <p class="hero-lede">In August 2026, NOAA corrected its estimates of recreational fishing trips, and the striper numbers came down with them. Anglers caught far fewer fish than the old estimates said. That doesn’t leave more fish in the water: stock assessments work backward from the catch, so if the fishing rate holds, a smaller catch points to a smaller population. Watch the song, then work the numbers yourself.</p>
+    <p class="credit">A 4-minute song and seven short interactives. Produced by Luyen Chou and GotOne for the American Saltwater Guides Association. Numbers from NOAA’s August 31, 2026 correction. <a href="about.html">About this site</a>.</p>
+    <a class="btn cue" href="#count">Work the numbers <span class="fishy" aria-hidden="true"></span></a>
+    <nav class="stops" id="stops" aria-label="The 7 pages"><ol><li><a href="#count"><b>1</b> The count</a></li><li><a href="#calendar"><b>2</b> The fuzzy calendar</a></li><li><a href="#ghosts"><b>3</b> Ghost trips</a></li><li><a href="#pie"><b>4</b> Fewer caught, fewer fish</a></li><li><a href="#removals"><b>5</b> Stripers killed by fishing</a></li><li><a href="#states"><b>6</b> State by state</a></li><li><a href="#next"><b>7</b> What happens next</a></li></ol></nav>
   </div>
+</section>
+<section class="home-more" aria-label="The lyrics, the short version and what you can do">
+<details class="homebox lyrics">
+  <summary>Read the lyrics</summary>
+  <p class="lyrnote">Every line of the song as captioned in the film. KID is Kit, the kid from the song.</p>
+  <div class="verse">
+  <p class="sung">♪ Tackle Box, Tackle Box Rock! ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> Fish on! Whoa, a striper!</p>
+  <p class="said"><b>STRIPER:</b> Easy, kid. Quick picture.</p>
+  <p class="said"><b>KID:</b> How many stripers are out there?</p>
+  <p class="said"><b>STRIPER:</b> Good question. They recounted the catch.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ Nobody counts every angler, ramp to shoal, ♪</p>
+  <p class="sung">♪ so NOAA runs surveys, like an exit poll. ♪</p>
+  <p class="sung">♪ The mail survey asks how many trips you took, ♪</p>
+  <p class="sung">♪ the ramp survey asks what came up on your hook. ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> Mail counts trips. Ramp counts fish per trip!</p>
+  <p class="said"><b>STRIPER:</b> Now you&#x27;re fishin&#x27;!</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ Trips times the fish per trip, ♪</p>
+  <p class="sung">♪ and out pops the total catch, lickety-split. ♪</p>
+  <p class="sung">♪ Oh, the count! ♪</p>
+  <p class="sung">♪ And the recount! ♪</p>
+  <p class="sung">♪ Comin&#x27; in with the tide, ♪</p>
+  <p class="sung">♪ fewer trips, fewer caught, ♪</p>
+  <p class="sung">♪ let the old numbers slide. ♪</p>
+  <p class="sung">♪ It&#x27;s a sharper tool ♪</p>
+  <p class="sung">♪ Sharper tool! ♪</p>
+  <p class="sung">♪ and a smaller school ♪</p>
+  <p class="sung">♪ Smaller school! ♪</p>
+  <p class="sung">♪ That&#x27;s the Striper Recount, ♪</p>
+  <p class="sung">♪ Yeah, the Striper Recount! ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> What went wrong?</p>
+  <p class="said"><b>STRIPER:</b> The calendar, kid.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ The mail form asked about two months at a time, ♪</p>
+  <p class="sung">♪ so trips from other months kept slippin&#x27; inside. ♪</p>
+  <p class="sung">♪ Then NOAA tried asking one month at a time, ♪</p>
+  <p class="sung">♪ in seventeen states, with both forms side by side. ♪</p>
+  <p class="sung">♪ Summer barely budged, it hardly moved at all, ♪</p>
+  <p class="sung">♪ but nearly half came off in spring and late fall. ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> Spring and late fall? Striper season!</p>
+  <p class="said"><b>STRIPER:</b> Yep. When we run, you fish.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ On August 28th the new count was sent, ♪</p>
+  <p class="sung">♪ the whole record down &#x27;bout 42 percent. ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>STRIPER:</b> About 272 million ghost trips!</p>
+  <p class="said"><b>KID:</b> Spooky!</p>
+  <p class="said"><b>KID:</b> Wait. Smaller count means more fish left, right?</p>
+  <p class="said"><b>STRIPER:</b> Everybody hopes so. Grab a fork. Pie time.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ A stock assessment does the math in reverse: ♪</p>
+  <p class="sung">♪ &#x27;cause nobody counts us, so the catch comes first. ♪</p>
+  <p class="sung">♪ Say one in five of the school got caught, ♪</p>
+  <p class="sung">♪ then five times the catch is the school you&#x27;ve got. ♪</p>
+  <p class="sung">♪ Now say the recount brings the catch on down, ♪</p>
+  <p class="sung">♪ if the rate holds steady, one in five&#x27;s the rule, ♪</p>
+  <p class="sung">♪ a smaller count means fewer fish were around: ♪</p>
+  <p class="sung">♪ smaller catch, smaller school. ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> Smaller catch... smaller school!</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ It&#x27;s a sharper tool ♪</p>
+  <p class="sung">♪ Sharper tool! ♪</p>
+  <p class="sung">♪ and a smaller school ♪</p>
+  <p class="sung">♪ Smaller school! ♪</p>
+  <p class="sung">♪ It ain&#x27;t extra fish, ♪</p>
+  <p class="sung">♪ No extra fish! ♪</p>
+  <p class="sung">♪ Commercial catch gets counted on its own, ♪</p>
+  <p class="sung">♪ and the recount left those numbers all alone. ♪</p>
+  <p class="sung">♪ Released fish that die go in the killed-fish count, ♪</p>
+  <p class="sung">♪ a new study says &#x27;bout half the old amount. ♪</p>
+  <p class="sung">♪ So the anglers&#x27; side came down, then down again, ♪</p>
+  <p class="sung">♪ but the commercial side stayed right where it&#x27;s been. ♪</p>
+  <p class="sung">♪ Out of all the stripers fishin&#x27; kills each year, ♪</p>
+  <p class="sung">♪ the commercial share got bigger, plain and clear. ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> So commercial didn&#x27;t go up?</p>
+  <p class="said"><b>STRIPER:</b> Nope. The anglers&#x27; side came down.</p>
+  <p class="said"><b>STRIPER:</b> Most commercial stripers? The Chesapeake. Where I grew up.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ Up the fish ladder, one pool at a time, ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> Survey, check! Correction, check!</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ The Commission&#x27;s new assessment&#x27;s in the pot: ♪</p>
+  <p class="sung">♪ new count, new release math, WHAM or maybe not. ♪</p>
+  <p class="sung">♪ Then peer review by an independent crew, ♪</p>
+  <p class="sung">♪ then the Management Board sets the rules for you. ♪</p>
+  <p class="sung">♪ Nobody knows yet how the rules will land, ♪</p>
+  <p class="sung">♪ so I&#x27;ll sit tight and wait, suitcase close at hand. ♪</p>
+  <p class="sung">♪ Oh, the count! ♪</p>
+  <p class="sung">♪ And the recount! ♪</p>
+  <p class="sung">♪ Comin&#x27; in with the tide, ♪</p>
+  <p class="sung">♪ fewer trips, fewer caught, ♪</p>
+  <p class="sung">♪ and the Board will decide. ♪</p>
+  <p class="sung">♪ It&#x27;s a sharper tool ♪</p>
+  <p class="sung">♪ Sharper tool! ♪</p>
+  <p class="sung">♪ and a smaller school ♪</p>
+  <p class="sung">♪ Here&#x27;s to someday! ♪</p>
+  </div>
+  <div class="verse">
+  <p class="said"><b>KID:</b> How many times you been caught?</p>
+  <p class="said"><b>STRIPER:</b> Lost count, kid. Till next spring.</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ Tackle Box, Tackle Box Rock! ♪</p>
+  </div>
+  <div class="verse">
+  <p class="sung">♪ Tackle Box, Tackle Box... Rock! ♪</p>
+  </div>
+</details>
+<details class="homebox short" data-sharebox>
+  <summary>The short version: four answers for your fishing buddies</summary>
+  <ol class="answers"><li><p class="q">How much did the recount change?</p><p class="a">NOAA found its mail survey counted far too many fishing trips, striper trips included. Across the whole record the corrected count has about 58 striper trips for every 100 in the old one. The other 42 never happened, which is the song’s “down about 42 percent”.</p></li><li><p class="q">Fewer fish caught. So more fish left?</p><p class="a">No. Stock assessments work out how many stripers there are from how many were taken out. If the fishing rate holds, a smaller catch means a smaller population, not more fish left.</p></li><li><p class="q">Did anglers’ share of the fish killed change?</p><p class="a">Yes. It shrank with the survey fix, and it will shrink again if the assessment adopts a new study showing about half as many released stripers die.</p></li><li><p class="q">So what happens to the rules?</p><p class="a">The benchmark assessment will work out what the corrected count means for the stock, and the Board sets the rules from it. Nobody knows the outcome yet. To follow along, see “What you can do” on the site.</p></li></ol>
+  <div class="sharerow"><button type="button" class="btn small" data-share="four"><span class="lbl">Copy all four</span> <span class="fishy" aria-hidden="true"></span></button><span class="sharemsg" role="status" aria-live="polite"></span></div>
+</details>
+<section class="wycd" aria-label="What you can do">
+  <h2 class="wycd-h">What you can do</h2>
+  <ul>
+    <li><b>Follow the process.</b> The Atlantic States Marine Fisheries Commission posts the striped bass assessment, Board meetings and public comment periods on its <a href="https://asmfc.org/species/atlantic-striped-bass/" target="_blank" rel="noopener">striped bass page</a>. When the Board considers new rules, anyone can send a comment.</li>
+    <li><a href="https://www.saltwaterguidesassociation.com/" target="_blank" rel="noopener">Follow, subscribe, and donate to ASGA</a>, the American Saltwater Guides Association.</li>
+    <li><a href="https://www.gotoneapp.com/" target="_blank" rel="noopener">Log your catches in GotOne</a> to improve recreational angling data. GotOne data goes to scientists, researchers, and state agencies. The shared data is anonymized, so you don’t blow your spots. <span class="disclose">GotOne co-produced this site.</span></li>
+  </ul>
+</section>
 </section>
 <script>
 (function(){var v=document.getElementById('film'),b=document.getElementById('bigplay'),kp=document.getElementById('kPlay'),ks=document.getElementById('kSound');
+  var ho=document.getElementById('handoff'),ep=document.getElementById('endpills'),ag=document.getElementById('again'),tv=v.closest('.tv'),hero=v.closest('.hero'),AT=210,ended=false;
   function sync(){var on=!v.paused&&!v.ended;kp.setAttribute('aria-pressed',String(on));kp.querySelector('span').textContent=on?'Pause':'Play';
-    ks.setAttribute('aria-pressed',String(v.muted));ks.querySelector('span').textContent=v.muted?'Sound off':'Sound on';}
-  function go(){b.hidden=true;v.controls=true;var p=v.play();if(p&&p.catch)p.catch(function(){b.hidden=false;});}
+    ks.setAttribute('aria-pressed',String(v.muted));ks.querySelector('span').textContent=v.muted?'Sound off':'Sound on';
+    tv.classList.toggle('on',on);hero.classList.toggle('on',on);}
+  function go(){b.hidden=true;ep.hidden=true;ended=false;v.controls=true;var p=v.play();if(p&&p.catch)p.catch(function(){b.hidden=false;});}
   b.addEventListener('click',go);
+  ag.addEventListener('click',function(){v.currentTime=0;go();});
   kp.addEventListener('click',function(){if(v.paused||v.ended)go();else v.pause();});
   ks.addEventListener('click',function(){v.muted=!v.muted;sync();});
   ['play','pause','ended','volumechange'].forEach(function(e){v.addEventListener(e,sync);});
-  v.addEventListener('play',function(){b.hidden=true;v.controls=true;});
+  v.addEventListener('play',function(){b.hidden=true;ep.hidden=true;ended=false;v.controls=true;});
+  // the hand-off: as the logo lands the pill offers page 1 while the music plays on; at the end, the poster
+  // comes back with two pills. In iPhone fullscreen this happens underneath, so it's waiting when it closes.
+  v.addEventListener('timeupdate',function(){var on=v.currentTime>=AT&&!v.ended&&!ended;if(ho.hidden===on)ho.hidden=!on;});
+  function rest(){if(big())return;v.controls=false;v.load();}
+  v.addEventListener('ended',function(){ended=true;ho.hidden=true;ep.hidden=false;b.hidden=true;rest();});
+  v.addEventListener('webkitendfullscreen',function(){if(ended)rest();});
+  document.addEventListener('fullscreenchange',function(){if(ended&&!document.fullscreenElement)rest();});
   // stop the song when the reader leaves it: a jump to the interactives (the Start button or a chapter
   // link), or scrolling the TV mostly off screen. It doesn't restart on its own when they scroll back.
   // (never while it fills the screen: iPhone fullscreen and picture in picture don't use the standard API)
@@ -60,19 +226,34 @@
   sync();})();
 </script>
 <main id="main"></main>
+<footer class="sitefoot" data-sharebox>
+  <p><span>The Striper Recount</span> <span class="dot" aria-hidden="true">·</span> <span>Produced by Luyen Chou and GotOne for the American Saltwater Guides Association</span> <span class="dot" aria-hidden="true">·</span> <span>Not a NOAA product</span> <span class="dot" aria-hidden="true">·</span> <span>Numbers as of Aug 31, 2026</span> <span class="dot" aria-hidden="true">·</span> <a href="about.html">About, sources and credits</a> <span class="dot" aria-hidden="true">·</span> <a href="#share" data-share="page">Share</a></p>
+  <p class="sharemsg" role="status" aria-live="polite"></p>
+</footer>
+<template id="wycd-tpl"><section class="wycd" aria-label="What you can do">
+  <h2 class="wycd-h">What you can do</h2>
+  <ul>
+    <li><b>Follow the process.</b> The Atlantic States Marine Fisheries Commission posts the striped bass assessment, Board meetings and public comment periods on its <a href="https://asmfc.org/species/atlantic-striped-bass/" target="_blank" rel="noopener">striped bass page</a>. When the Board considers new rules, anyone can send a comment.</li>
+    <li><a href="https://www.saltwaterguidesassociation.com/" target="_blank" rel="noopener">Follow, subscribe, and donate to ASGA</a>, the American Saltwater Guides Association.</li>
+    <li><a href="https://www.gotoneapp.com/" target="_blank" rel="noopener">Log your catches in GotOne</a> to improve recreational angling data. GotOne data goes to scientists, researchers, and state agencies. The shared data is anonymized, so you don’t blow your spots. <span class="disclose">GotOne co-produced this site.</span></li>
+  </ul>
+</section></template>
+<script>window.RC_META={"url": "https://luyenchou1.github.io/striper-recount/", "credit": "Produced by Luyen Chou and GotOne for the American Saltwater Guides Association", "asOf": "Aug 31, 2026", "src": {"mrip": "https://www.fisheries.noaa.gov/recreational-fishing-data/fishing-effort-survey-research-and-improvements", "mripLog": "https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-estimate-updates", "fes": "https://www.fisheries.noaa.gov/resource/document/test-revised-fishing-effort-survey-2025-study-report", "asmfc": "https://asmfc.org/species/atlantic-striped-bass/", "dmf": "https://doi.org/10.2139/ssrn.7049791", "asga": "https://www.saltwaterguidesassociation.com/", "gotone": "https://www.gotoneapp.com/"}, "shareText": "The Striper Recount: a 4-minute cartoon song about NOAA’s striped bass recount, plus the numbers to play with."};</script>
 <script src="assets/engine.js?v=059f5ee4"></script>
 <script src="assets/kit.js?v=9514e4a2"></script>
 <script src="assets/characters.js?v=803fe709"></script>
-<script src="assets/data.js?v=b7207e72"></script>
-<script src="assets/site.js?v=621dfed5"></script>
+<script src="assets/data.js?v=31f13756"></script>
+<script src="assets/answers.js?v=afebcc8f"></script>
+<script src="assets/frame.js?v=8812d618"></script>
+<script src="assets/site.js?v=8cf86c75"></script>
 <script src="assets/sets.js?v=d7dff41b"></script>
-<script src="assets/pages/count.js?v=4f397dbc"></script>
-<script src="assets/pages/calendar.js?v=1dcbaee4"></script>
-<script src="assets/pages/ghosts.js?v=9a1392cb"></script>
-<script src="assets/pages/pie.js?v=603cd6e3"></script>
-<script src="assets/pages/removals.js?v=05430bc9"></script>
-<script src="assets/pages/states.js?v=5d7a9b17"></script>
-<script src="assets/pages/next.js?v=00ee0ec4"></script>
+<script src="assets/pages/count.js?v=eec4bb44"></script>
+<script src="assets/pages/calendar.js?v=608d21c6"></script>
+<script src="assets/pages/ghosts.js?v=ea3d5558"></script>
+<script src="assets/pages/pie.js?v=43dc8043"></script>
+<script src="assets/pages/removals.js?v=68f1137f"></script>
+<script src="assets/pages/states.js?v=b2ef9a60"></script>
+<script src="assets/pages/next.js?v=9070a875"></script>
 <script>SITE.boot();</script>
 </body>
 </html>

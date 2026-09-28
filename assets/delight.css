@@ -1,0 +1,131 @@
+/* The delight pass: step cards, reward beats, the chapter line and other small motion touches.
+   Loaded after site.css and frame.css. Chrome motion runs on steps(2..8), the way the pictures move on twos;
+   nothing here touches the stage drawings. Every motion has a reduced-motion path (the block at the end). */
+:root{
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .2 0 0 0 0 .12 0 0 0 .16 -.03'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- paper grain on the chrome (polish E1, UX #16): a static tile on cards and panels, pre-baked alpha,
+   no blend mode, in place of the fixed blended overlay ---------- */
+body::after{content:none;display:none}
+.sc-head,.sc-text,.ch-panel,.step,.card,.pov{background-image:var(--grain)}
+.take{background:var(--grain) 0 0/220px 220px repeat,var(--white) repeating-linear-gradient(180deg,transparent 0 27px,rgba(47,124,160,.22) 27px 28px) 0 38px/100% calc(100% - 38px) no-repeat}
+
+/* ---------- step cards (polish A1, UX #10): the cards lie a little askew; the live one squares up, lifts and its
+   bobber dips. Upcoming cards at .62 and past cards at .75, so the square-up carries "this one's live" ---------- */
+.step{--r:-.4deg;opacity:.62;transform:rotate(var(--r));transition:opacity .25s steps(3,end),transform .25s steps(3,end),box-shadow .25s steps(3,end)}
+.step:nth-child(even){--r:.35deg}
+.step.past{opacity:.75}
+.step.on{opacity:1;transform:translate(-2px,-3px);box-shadow:inset 7px 0 0 var(--mustard),8px 10px 0 var(--sh-tan)}
+.step.on::before{animation:dip .5s steps(6,end) .1s}
+.step,svg.stage,.btn,.chapbtn,.chaplist a,.seg button,.line a,details.more summary{-webkit-tap-highlight-color:transparent}
+
+/* ---------- page headers (director 12, polish A3): the film's caption line, and the title popping on ---------- */
+.sc-head .filmcap{margin:0;max-width:34em;font:700 15px/1.75 var(--f-mono);letter-spacing:.01em}
+.sc-head .filmcap span{padding:3px 9px;background:rgba(0,0,0,.84);color:#fff;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.sc-head h2.pre{opacity:0}
+.sc-head h2.pop{animation:titlePop .33s steps(4,end);transform-origin:0 100%}
+@keyframes titlePop{0%{transform:scale(.9);opacity:0;text-shadow:0 0 0 var(--hi-mustard)}40%{transform:scale(1.05);opacity:1;text-shadow:6px 6px 0 var(--hi-mustard)}70%{transform:scale(.98);text-shadow:5px 4px 0 var(--hi-mustard)}100%{transform:none;text-shadow:3px 3px 0 var(--hi-mustard)}}
+
+/* ---------- numbers land (polish D1, D2) ---------- */
+.num-land{animation:numLand .25s steps(3,end)}
+@keyframes numLand{0%{transform:scale(1.14)}66%{transform:scale(.97)}100%{transform:none}}
+/* the answer is the biggest number in the equation: 1.25 times its inputs, a wider chip and a deeper drop */
+#count .eq .chip[data-big] b{font-size:calc(1.25 * clamp(26px,2.5vw,42px))}
+#count.playing .eq .chip[data-big] b{font-size:calc(1.25 * clamp(22px,1.8vw,30px))}
+#pie .eq .chip[data-big] b{font-size:calc(1.25 * clamp(26px,2.5vw,42px))}
+#count .eq .chip[data-big],#pie .eq .chip[data-big]{min-width:calc(1.2 * clamp(92px,9vw,156px));box-shadow:5px 5px 0 var(--sh-tan)}
+/* the old figure, struck: brick lettering on a cream slip with an ink strike, like the chalkboard and the count */
+.eq s.was{display:inline-block;padding:0 4px;border-radius:4px;background:var(--cream);color:var(--brick);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--ink)}
+
+/* ---------- the reward beat at each page's closing (polish A2, F6), run by SITE.reward ---------- */
+.take{transform-origin:50% -10px}
+.take.pin{animation:pinSwing .5s steps(6,end)}
+@keyframes pinSwing{0%{transform:rotate(-4deg)}33%{transform:rotate(2deg)}66%{transform:rotate(-1.5deg)}100%{transform:rotate(-.6deg)}}
+.take.jolt{animation:takeJolt .25s steps(3,end)}
+@keyframes takeJolt{33%{transform:rotate(-.6deg) translate(1px,3px)}66%{transform:rotate(-.6deg) translate(0,-1px)}}
+.navrow .btn.hop{animation:nextHop .7s steps(8,end) 2}
+@keyframes nextHop{15%{transform:scale(1.06,.9) translateY(2px)}45%{transform:translateY(-10px) rotate(-2deg)}70%{transform:scale(1.03,.96)}85%{transform:translateY(-3px)}100%{transform:none}}
+.navrow .btn.hop .fishy{animation:fishLeap .7s steps(7,end) 2}
+@keyframes fishLeap{40%{transform:translate(5px,-9px) rotate(-22deg)}80%{transform:translate(8px,0) rotate(18deg)}}
+
+/* ---------- the chapter line (polish F1): an idle bob, a cast from the start of the line, a splash at each hook,
+   and a fish on every hook passed ---------- */
+.line .bob{animation:bobIdle 1.6s steps(2,end) infinite}
+@keyframes bobIdle{50%{translate:0 2px}}
+.line .bob.cast{animation:cast .45s steps(5,end),bobIdle 1.6s steps(2,end) .45s infinite}
+@keyframes cast{0%{top:-3px}30%{top:-24px}65%{top:-14px}85%{top:-1px}100%{top:-3px}}
+.line .splash{position:absolute;top:22px;left:0;width:18px;height:5px;margin-left:-9px;border:2px solid var(--cream);border-radius:50%;opacity:0;pointer-events:none}
+.line .splash.on{animation:ripple .6s steps(6,end)}
+.line a.past::after,.line a.got::after{content:"";position:absolute;left:20px;top:26px;width:17px;height:9px;background:var(--fish) no-repeat center/contain;transform:rotate(78deg);transform-origin:1px 50%;animation:fishOn .3s steps(3,end)}
+@keyframes fishOn{0%{transform:rotate(40deg) scale(.5)}66%{transform:rotate(92deg) scale(1.1)}100%{transform:rotate(78deg)}}
+
+/* ---------- disclosures: a bobber that tips over when a "more" panel opens (polish E5) ---------- */
+details.more summary{list-style:none;display:flex;align-items:center;gap:8px}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"";width:12px;height:17px;flex:none;background:var(--bobber) no-repeat center/contain;transition:transform .2s steps(2,end)}
+details.more[open] summary::before{transform:rotate(90deg) translateX(3px)}
+
+/* ---------- before the interactives boot: a bobber bobbing on a line (UX #22, polish F8) ---------- */
+#main:empty{position:relative;min-height:38vh}
+#main:empty::before{content:"";position:absolute;left:50%;top:64px;width:140px;height:3px;margin-left:-70px;border-radius:2px;background:var(--ink);opacity:.55}
+#main:empty::after{content:"";position:absolute;left:50%;top:48px;width:22px;height:32px;margin-left:-11px;background:var(--bobber) no-repeat center/contain;animation:bobIdle 1.6s steps(2,end) infinite}
+
+/* ---------- touch screens: hover rules only where hover exists, so a tapped button doesn't stay lifted and the
+   Next fish stops swimming after a tap (UX #14) ---------- */
+@media (hover:none){
+  .btn:hover{transform:none}
+  .btn:hover .fishy{animation:none}
+  .seg button:hover{transform:none}
+  .seg button:not([aria-pressed="true"]):hover{background:var(--cream);box-shadow:0 3px 0 var(--ink)}
+  #next .flips .flip:hover{transform:none}
+}
+
+/* ---------- phones ---------- */
+@media (max-aspect-ratio: 1/1), (max-width: 820px){
+  /* card borders at 2.5 px, the weight of the stage's lines at phone size (polish E7) */
+  .step,.take,.card{border-width:2.5px}
+  /* the answer chip takes a bigger share of the row */
+  #count .eq .chip[data-big] b{font-size:23.75px}
+  #pie .eq .chip[data-big] b{font-size:25px}
+  #count .eq .chip[data-big],#pie .eq .chip[data-big]{flex:1.3;min-width:0;box-shadow:3px 4px 0 var(--sh-tan)}
+  .sc-head .filmcap{font-size:13.5px;line-height:1.75}
+  /* the chapter button (polish F2, UX #2): "4 of 7 ▾" on one line, with the bobber riding in it */
+  .chapbtn{white-space:nowrap;gap:7px}
+  .chapbtn::before{content:"";width:12px;height:17px;flex:none;background:var(--bobber) no-repeat center/contain}
+  .chapbtn.dip::before{animation:dip .5s steps(6,end)}
+  .chaplist.open{animation:menuDrop .24s steps(3,end);transform-origin:100% 0}
+  @keyframes menuDrop{0%{transform:translateY(-8px) scale(.96);opacity:0}}
+  .chaplist a{gap:8px}
+  .chaplist a::before{content:"";width:12px;height:17px;flex:none}
+  .chaplist a[aria-current="true"]::before{background:var(--bobber) no-repeat center/contain}
+}
+
+/* ---------- reduced motion (polish G3): the stamp simply appears, nothing bobs, casts, swings or hops, and the
+   cards stay square ---------- */
+@media (prefers-reduced-motion: reduce){
+  .step,.step.on{transform:none;transition:none}
+  .step.on::before{animation:none}
+  .sc-head h2.pre{opacity:1}
+  .sc-head h2.pop{animation:none}
+  .num-land{animation:none}
+  .take.pin,.take.jolt{animation:none}
+  .take .gotit.on{animation:none}
+  .navrow .btn.hop,.navrow .btn.hop .fishy{animation:none}
+  .navrow .btn.hop{outline:3px dashed var(--brick);outline-offset:4px}
+  .line .bob,.line .bob.cast{animation:none;transition:none}
+  .line .splash.on{animation:none}
+  .line a.past::after,.line a.got::after{animation:none}
+  details.more summary::before{transition:none}
+  #main:empty::after{animation:none}
+  .chapbtn.dip::before,.chaplist.open{animation:none}
+  .knob i,.ybob{transition:none}
+}
+
+/* ---------- removals (its own pass): the answer chip is 1.25 times its inputs, like count's and pie's ---------- */
+#removals .eq .chip[data-big] b{font-size:calc(1.25 * clamp(24px,2.3vw,38px))}
+#removals .eq .chip[data-big]{min-width:calc(1.2 * clamp(100px,10vw,170px));box-shadow:5px 5px 0 var(--sh-tan)}
+@media (max-aspect-ratio: 1/1), (max-width: 820px){
+  #removals .eq .chip[data-big] b{font-size:22.5px}
+  #removals .eq .chip[data-big]{flex:1.3;min-width:0;box-shadow:3px 4px 0 var(--sh-tan)}
+}

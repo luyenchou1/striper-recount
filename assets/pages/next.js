@@ -1,7 +1,7 @@
 /* 7. What happens next: the fish ladder (the film's s13 and s14, 2:50 to 3:08). The last page.
    A scrolly page, like the others (Luyen's reviews, Sep 26): each pool of the ladder is a step, and the
    Striper leaps up one pool per step, on an arc, with a splash. No spotlight: the leaps cross the picture.
-     pool 1  the corrected numbers: the CORRECTED COUNT can, released Aug 28, 2026 (the one check)
+     pool 1  the corrected numbers: the CORRECTED COUNT can, released August 2026 (the one check)
      pool 2  the benchmark: the Commission's pot on the bank; the can, the jar and the box drop in
      pool 3  peer review: three magnifiers lean in over the pot and blink one after another
      pool 4  the Board: the empty Board table on the near bank, gavel resting
@@ -14,30 +14,27 @@ SITE.register({
   build: function (api) {
     var S = SITE, K = S.K, C = S.C, INK = C.ink, N = S.N, path = S.path, hash = TBR.hash;
     var POOL = [
-      { b: 'Corrected numbers', l: ['CORRECTED', 'NUMBERS'], t: '<b>Done.</b> On <b>August 28, 2026</b> NOAA released corrected recreational catch and effort going back to the early 1980s.' },
-      { b: 'Benchmark assessment', l: ['BENCHMARK', 'ASSESSMENT'], t: '<b>Happening now.</b> Scientists rebuild the stock assessment with three new ingredients: the corrected catch, the new release-mortality estimate, and possibly a new model (WHAM).' },
+      { b: 'Corrected numbers', l: ['CORRECTED', 'NUMBERS'], t: '<b>Done.</b> In <b>late August 2026</b> NOAA released corrected recreational catch and effort going back to the early 1980s.' },
+      { b: 'Benchmark assessment', l: ['BENCHMARK', 'ASSESSMENT'], t: '<b>Happening now.</b> Scientists rebuild the stock assessment with three new ingredients: the corrected catch, the new release-mortality estimate, and possibly a new math model (called WHAM).' },
       { b: 'Peer review', l: ['PEER', 'REVIEW'], t: 'Independent scientists check the new assessment before managers can use it.' },
       { b: 'The Board', l: ['STRIPED BASS', 'BOARD'], t: 'The Atlantic States Marine Fisheries Commission’s Striped Bass Management Board sets new targets and limits from the reviewed assessment.' },
-      { b: 'New rules', l: ['NEW', 'RULES'], t: 'Seasons, size limits and bag limits follow from the Board’s decisions. <b>Nobody knows the outcome yet.</b>' }
+      { b: 'New rules', l: ['NEW', 'RULES'], t: 'Seasons, size limits, bag limits and commercial quotas follow from the Board’s decisions.' }
     ];
     // the benchmark's three ingredients, in the order they go into the pot
     var ING = [
       { kind: 'can', name: 'the corrected catch', lines: ['CORRECTED', 'CATCH'], band: C.sea },
       { kind: 'jar', name: 'the new release-mortality estimate', lines: ['NEW RELEASE', 'DEATH RATE'], band: C.sky },
-      { kind: 'box', name: 'maybe a new model (WHAM)', lines: ['MAYBE A NEW', 'MODEL (WHAM)'], band: C.tan }
+      { kind: 'box', name: 'maybe a new math model (called WHAM)', lines: ['MAYBE A NEW', 'MODEL (WHAM)'], band: C.tan }
     ];
-    var TELL = [
-      { q: 'How much did the recount change?', a: 'NOAA found its survey counted far too many striper trips. Across the whole record the corrected count has about 58 trips for every 100 in the old one.' },
-      { q: 'Fewer fish caught. So more fish left?', a: 'No. Fewer fish caught means there were fewer stripers out there all along.' },
-      { q: 'Did anglers’ share of the fish killed change?', a: 'Yes. It shrank twice: once from the survey fix, and again from a study showing about half as many released stripers die.' },
-      { q: 'So what happens to the rules?', a: 'The benchmark assessment will decide what the corrected count means for the stock, and the Board sets the rules from it. Nobody knows the outcome yet. Stay involved.' }
-    ];
+    // the four answers live in site/src/answers.js, shared with the home page's short version
+    var TELL = window.RC_ANSWERS || [];
     var HOP = 10;                     // drawings in the air for one pool
     var NEVER = -1e6;
     var st8 = {
       at: 0, target: 0, seen: [true, false, false, false, false], rev: [NEVER, NEVER, NEVER, NEVER, NEVER],
       hop: null, queue: [], landT: NEVER, cheerT: NEVER, topT: null, got: false,
-      pot: 0, plopT: [NEVER, NEVER, NEVER], fullT: NEVER, drag: null, dragged: false, tried: false, checkT: 0, turn: false, autoPot: false
+      pot: 0, plopT: [NEVER, NEVER, NEVER], fullT: NEVER, drag: null, dragged: false, tried: false, checkT: 0, turn: false, autoPot: false,
+      bye: false, byeT: NEVER
     };
     function lerp(a, b, t) { return a + (b - a) * t; }
     function rect(x, y, w, h, rx, fill, sw, extra) {
@@ -264,12 +261,12 @@ SITE.register({
     }
     function commission(L, D) {
       var s = '', PT = L.PT, px = L.potX, ps = L.potS, k = ps / 0.6, rim = PT - 250 * ps, dr = D - st8.rev[1], open = st8.seen[1];
-      // pool 1's scene: the CORRECTED COUNT can, released Aug 28, 2026
+      // pool 1's scene: the CORRECTED COUNT can, released August 2026
       if (!open) {
         var cp = { x: L.pileX + (L.port ? -10 : 40), y: PT, s: L.ingS * 1.2 };
         s += S.shadow(cp.x, PT, 180 * cp.s, 'sand') + ingredient(0, cp.x, cp.y, cp.s);
-        var tw = tagW(['AUG 28, 2026'], L.tfs), th = L.tfs * 2.24 + 34;
-        s += hang(cp.x + 30, cp.y - 190 * cp.s, { x: S.clamp(cp.x + 20, tw / 2 + 12, L.W - tw / 2 - 12), y: cp.y - 230 * cp.s - th / 2 - 40, w: tw, h: th, band: C.sea, rot: -3, lines: ['RELEASED', 'AUG 28, 2026'], size: L.tfs });
+        var tw = tagW(['AUG 2026'], L.tfs), th = L.tfs * 2.24 + 34;
+        s += hang(cp.x + 30, cp.y - 190 * cp.s, { x: S.clamp(cp.x + 20, tw / 2 + 12, L.W - tw / 2 - 12), y: cp.y - 230 * cp.s - th / 2 - 40, w: tw, h: th, band: C.sea, rot: -3, lines: ['RELEASED', 'AUG 2026'], size: L.tfs });
         return s;
       }
       // pool 3: the peer reviewers lean in over the pot and blink one after another
@@ -381,16 +378,36 @@ SITE.register({
       }
       if (i === 2) o.look = 'upBack';
       if (i === 3) { o.look = 'downFwd'; o.expr = 'kind'; }
+      var scripted = false;
       if (i === 4 && st8.topT != null) {
-        var dt = D - st8.topT;
+        var dt = D - st8.topT; scripted = true;
         if (dt >= 8) { o.flip = true; o.expr = 'kind'; o.look = [1, 0.4]; o.pose = 'neutral'; }
         if (dt >= 10 && dt < 26) o.mouth = dt % 3 === 2 ? 'closed' : 'open';
         if ((dt >= 22 && dt < 36) || (S.reduce && dt > 0)) { o.pose = 'tipHat'; o.expr = 'wink'; o.mouth = false; o.blink = false; }
         if (dt >= 10) {
           var hp = K.striperPoints(o).hook;
-          res.say = L.port ? S.say('Nobody knows yet. That’s the honest answer.', 300, 100, 570, hp[0] - 10, hp[1] - 6, { size: 44 })
+          // on phones the balloon hangs just below and left of him, so its tail is short (director 7c)
+          res.say = L.port ? S.say('Nobody knows yet. That’s the honest answer.', hp[0] - 150, hp[1] + 310, 470, hp[0] - 20, hp[1] + 14, { size: 44 })
             : S.say('Nobody knows yet. That’s the honest answer.', L.board(3).x1 + 128, L.wat(4) - 122, 250, hp[0] - 12, hp[1] - 6, { size: 40 });
         }
+      }
+      // the closing (director 7b): back down in pool 1 beside Kit, who holds up the photo from the film's 3:22;
+      // he tips his hat, says the film's last line and winks on "spring"
+      if (i === 0 && st8.bye && !h) {
+        var db = D - st8.byeT; scripted = true;
+        o.flip = true; o.look = [1, 0.25]; o.expr = 'kind';
+        if (db >= 6 && db < 18) { o.pose = 'tipHat'; o.blink = false; }
+        if (db >= 4 && db < 26) o.mouth = db % 3 === 2 ? 'closed' : 'open';
+        if (db >= 18 || S.reduce) { o.expr = 'wink'; o.mouth = false; o.blink = false; }
+        if (db >= 4 || S.reduce) {
+          var hb = K.striperPoints(o).hook;
+          res.say = L.port ? S.say('Lost count, kid. Till next spring.', hb[0] + 250, hb[1] - 250, 400, hb[0] + 30, hb[1] - 20, { size: 44 })
+            : S.say('Lost count, kid. Till next spring.', hb[0] + 300, hb[1] - 170, 360, hb[0] + 34, hb[1] - 10, { size: 42 });
+        }
+      }
+      if (!h && !scripted && !(dl >= 0 && dl < 3)) {
+        o.squash = S.breath(stage);
+        var lk = st8.turn && !(i === 1 && D - st8.fullT >= 0 && D - st8.fullT < 20) && S.lookAt(stage, K.striperPoints(o).eye, o.flip); if (lk) o.look = lk;
       }
       var wat = L.wat(i);
       // he stands in the pool in front of the cascades, cut at the water line, with a ripple across him
@@ -416,8 +433,12 @@ SITE.register({
     function kit(L, D) {
       var o = { x: L.KX, y: L.KY, scale: L.KS, pose: 'neutral', expr: 'kind', look: [1, -0.8], blink: blink(D, 2) };
       if (st8.at === 4 && !st8.hop) { o.pose = 'wave'; o.expr = 'grin'; o.rot = (D >> 2) % 2 ? 2 : -1; }
+      else if (st8.turn) { var lk = S.lookAt(stage, K.kidPoints(o).eye, o.flip); if (lk) o.look = lk; }
       var dc = D - st8.cheerT;
       if (dc >= 0 && dc < 16) { var f = (dc >> 1) % 2; o.pose = 'cheer'; o.expr = 'grin'; o.frame = f; o.rot = f ? 3 : -3; o.blink = false; }
+      // the closing: she holds up the photo she took at the start of the song
+      var db = D - st8.byeT;
+      if (st8.bye && st8.at === 0 && !st8.hop && (db >= 2 || S.reduce)) { o.pose = 'photo'; o.expr = db >= 26 || S.reduce ? 'grin' : 'tilt'; o.look = [1, -0.2]; o.rot = 0; o.frame = 0; }
       return S.shadow(L.KX, L.KY, 200 * L.KS / 0.75, 'sand') + K.kid(o);
     }
     /* TAP THE NEXT POOL: a dashed arc from the Striper to the next pool, until the first leap */
@@ -482,7 +503,7 @@ SITE.register({
     }
     function tick(t) {
       clk.raf = 0;
-      var busy = clk.D < clk.until, idle = clk.inView && !document.hidden && t - clk.woke < 40000;
+      var busy = clk.D < clk.until, idle = clk.inView && !document.hidden && t - clk.woke < 1000;
       if (!busy && !idle) return;
       if (t - clk.last >= 1000 / 12 - 2) {
         clk.last = t; clk.D++;
@@ -522,10 +543,12 @@ SITE.register({
       if (!st8.seen[k]) { st8.seen[k] = true; st8.rev[k] = T; }
       if (k > 1 && st8.pot < 3) addAll(true);                // past the benchmark, the pot is full
       if (k === 4) { st8.topT = S.reduce ? D - 999 : D; kick(48); } else st8.topT = null;
+      if (k === 0 && st8.bye) { st8.byeT = T; kick(30); }
       kick(14); ui();
     }
     function payoffLands() { st8.got = true; }
-    function leapTo(k) {
+    function leapTo(k, bye) {
+      st8.bye = !!bye;
       var cur = st8.queue.length ? st8.queue[st8.queue.length - 1] : st8.hop ? st8.hop.to : st8.at;
       st8.target = k; st8.tried = true;
       if (k > cur) for (var i = cur + 1; i <= k; i++) st8.queue.push(i);
@@ -605,38 +628,46 @@ SITE.register({
 
     /* ---------------- the walkthrough: one pool per step ---------------- */
     var WALK = [
-      { cls: 'first', h: '<p>The corrected count is only the first step. Before anything changes on the water, it has to climb this ladder.</p><p><b>Pool 1: done.</b> On August 28, 2026, NOAA released corrected recreational catch and effort going back to the early 1980s.</p>' },
-      { h: '<p><b>Pool 2: the benchmark assessment, happening now.</b> Scientists rebuild the stock assessment with three new ingredients: the corrected catch, the new release death rate, and possibly a new model (WHAM).</p>' },
+      { cls: 'first', h: '<p>Before anything changes on the water, the corrected count has to climb this ladder.</p><p><b>Pool 1: done.</b> In late August 2026, NOAA released corrected catch and trips going back to 1981.</p>' },
+      { h: '<p><b>Pool 2: the benchmark assessment, under way now.</b> Three new ingredients go in: the corrected catch, the new release death rate, and maybe a new math model (called WHAM).</p>' },
       { h: '<p><b>Pool 3: peer review.</b> Independent scientists check the new assessment before managers can use it.</p>' },
       { h: '<p><b>Pool 4: the Board.</b> The Atlantic States Marine Fisheries Commission’s Striped Bass Management Board sets new targets and limits from the reviewed assessment.</p>' },
-      { h: '<p><b>Pool 5: new rules.</b> Seasons, size limits and bag limits follow from the Board’s decisions. <b>Nobody knows the outcome yet.</b></p>' },
-      { cls: 'turn', h: '<span class="go">Your turn</span><p>Four questions your fishing buddies will ask. Tap a card for the answer, then copy all four to share. You can also tap any pool to send the Striper there.</p>' }
+      { h: '<p><b>Pool 5: new rules.</b> Seasons, size limits, bag limits and commercial quotas follow from the Board’s decisions.</p>' },
+      { cls: 'turn', h: '<span class="go">Your turn</span><p>Four questions your fishing buddies will ask. Tap a card for the answer, then share all four. You can also tap any pool to send the Striper there.</p>' }
     ];
     var PLAY = WALK.length - 1, OUTRO = WALK.length, turnEl = null;
     WALK.forEach(function (d, i) { var e = api.step(d.h, d.cls); if (i === PLAY) turnEl = e; });
-    function snap(n) {
+    function snap(n, quiet) {
       var k = Math.min(n, 4), D = clk.D;
+      st8.bye = false; st8.byeT = NEVER;
       st8.hop = null; st8.queue = []; st8.at = k; st8.target = k; st8.landT = NEVER; st8.cheerT = NEVER; st8.drag = null;
       for (var i = 0; i < 5; i++) { st8.seen[i] = i <= k; st8.rev[i] = NEVER; }
       st8.pot = k >= 1 ? 3 : 0; st8.plopT = [NEVER, NEVER, NEVER]; st8.fullT = NEVER; st8.autoPot = false;
       st8.topT = k === 4 ? D - 60 : null; st8.got = k === 4;
       st8.turn = n >= PLAY; if (n < PLAY) st8.tried = false;
-      api.playing(st8.turn); ui(); stage.render();
+      api.playing(st8.turn); ui(); if (!quiet) stage.render();
     }
     function enter(n) {
       if (n >= 1 && n <= 4) { if (n === 1) st8.autoPot = true; leapTo(n); }
       else if (n === PLAY) { st8.turn = true; api.playing(true); stage.render(); nudgeCard(); }
     }
     api.onStep(function (n, prev) {
-      if (n >= PLAY && prev >= PLAY) { if (n === OUTRO) api.gotIt(); return; }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      var secEl = api.panel.closest('section'); if (secEl) secEl.classList.toggle('outro', n === OUTRO);
+      if (n >= PLAY && prev >= PLAY) { if (n === OUTRO) closing(); else if (st8.bye) { st8.bye = false; kick(2); } return; }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else { snap(n); if (n === PLAY) nudgeCard(); }
-      if (n === OUTRO) api.gotIt();
+      if (n === OUTRO) closing();
     });
+    /* the closing: the reward beat, and the Striper leaps home to pool 1 beside Kit for the film's goodbye */
+    function closing() {
+      S.reward(api);
+      if (st8.at === 0 && !st8.hop && !st8.queue.length) { st8.bye = true; st8.byeT = S.reduce ? clk.D - 999 : clk.D; kick(30); if (S.reduce) stage.render(); }
+      else leapTo(0, true);
+    }
     function nudgeCard() { if (flipsTouched || S.reduce) return; var c0 = flipEls[0]; if (c0) { c0.classList.remove('nudge'); void c0.offsetWidth; c0.classList.add('nudge'); } }
     var live = S.el('p', { class: 'sr', 'aria-live': 'polite' }, api.bar);
     function ui() { var t = 'The Striper is in pool ' + (st8.at + 1) + ': ' + POOL[st8.at].b.toLowerCase() + '.'; if (live.textContent !== t) live.textContent = t; }
-    api.take('The count is fixed. What it means for the stock and the rules comes out of the benchmark assessment, peer review and the Board. Nobody knows the outcome yet.');
+    api.take('The count has been corrected. What it means for the stock and the rules comes out of the benchmark assessment, peer review and the Board. Nobody knows the outcome yet.');
 
     // What to tell your fishing buddies: four flip cards and a Copy button
     var tell = S.el('div', { class: 'tell' }, turnEl), flipsTouched = false;
@@ -655,29 +686,27 @@ SITE.register({
       flipEls.push(b);
     });
     var copyRow = S.el('div', { class: 'copyrow' }, tell);
-    var copyBtn = S.el('button', { type: 'button', class: 'btn leap small' }, copyRow, 'Copy all four <span class="fishy" aria-hidden="true"></span>');
+    var copyBtn = S.el('button', { type: 'button', class: 'btn leap small' }, copyRow, (FRAME.canShare() ? 'Share the four' : 'Copy all four') + ' <span class="fishy" aria-hidden="true"></span>');
     var copyMsg = S.el('span', { class: 'copymsg', role: 'status', 'aria-live': 'polite' }, copyRow);
     var fall = S.el('textarea', { class: 'copyfall', readonly: 'readonly', rows: '8', 'aria-label': 'The four answers, ready to copy', hidden: 'hidden' }, tell);
-    var copyText = 'What to tell your fishing buddies (The Striper Recount):\n' + TELL.map(function (c, i) { return (i + 1) + '. ' + c.q + '\n   ' + c.a.replace(/’/g, '\''); }).join('\n');
-    copyText = copyText.replace(/’/g, '\'');
-    function copied() { copyMsg.textContent = 'Copied. Paste it anywhere.'; fall.hidden = true; }
-    function fallback() {
-      fall.value = copyText; fall.hidden = false; fall.focus(); fall.select();
-      var ok = false;
-      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-      if (ok) { copyMsg.textContent = 'Copied. Paste it anywhere.'; }
-      else copyMsg.textContent = 'Your browser blocked copying. The text is selected below: press Ctrl+C (or Cmd+C on a Mac).';
-    }
+    // the four answers, the credit and the site's address: the share sheet on phones, else the clipboard
+    // (the same code as the footer's Share link, in frame.js)
     copyBtn.addEventListener('click', function () {
-      copyMsg.textContent = '';
-      if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext !== false) navigator.clipboard.writeText(copyText).then(copied, fallback);
-      else fallback();
+      var txt = FRAME.fourText();
+      FRAME.share({ title: 'The Striper Recount', text: txt, copy: txt }, { msg: copyMsg, fall: fall });
     });
+
+    // after the takeaway: what the recount changes this season and when (process facts, no predictions),
+    // then the "What you can do" block, cloned from the build's template (frame.js)
+    S.el('p', { class: 'process' }, api.panel, '<b>This season.</b> The recount by itself doesn’t change any rule. Today’s seasons, size limits and bag limits stay until the Board, and your state, act.' +
+      '<br><b>When.</b> The Atlantic States Marine Fisheries Commission ' + FRAME.link('asmfc', 'expects the benchmark assessment to be finished in mid-2027') + '. There’s no date yet for new rules.');
+    FRAME.wycd(api.panel);
 
     // idle on twos only while the stage is on screen
     if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { clk.inView = es[0].isIntersecting; if (clk.inView) wake(); }, { threshold: 0.05 }).observe(api.stageHost);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) wake(); });
     api.stageHost.addEventListener('pointerdown', wake);
+    S.idle(api.stageHost, wake);
     snap(0);
     st8.checkT = S.reduce ? -99 : 6;     // the step 1 check pops on with overshoot
     stage.render();

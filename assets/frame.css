@@ -1,0 +1,149 @@
+/* The frame around the interactives: footer, About page, the "What you can do" block, the home page
+   under the TV and the TV hero itself. Loaded after site.css. */
+
+/* ---------- the TV hero: the Play pill sized to the screen, the hand-off pills, the TV switched on ---------- */
+.bigplay{z-index:3;padding:0 0 1.4%}
+.bigplay > span{padding:clamp(5px,.55vw,9px) clamp(12px,1.3vw,20px);border-width:3px;font-size:clamp(14px,1.2vw,20px);box-shadow:inset 0 -5px 0 var(--sh-orange),4px 4px 0 var(--ink)}
+.bigplay > span > span{display:inline;padding:0;border:0;border-radius:0;background:none;box-shadow:none;animation:none;font:inherit}
+.handoff[hidden],.endpills[hidden]{display:none}
+/* both sit where the Play pill sits, on the sand strip under the ribbon (at 3:30 the film's caption line; the
+   credit card above it stays clear) */
+.handoff{position:absolute;left:50%;bottom:1.6%;z-index:3;transform:translateX(-50%);text-decoration:none;white-space:nowrap}
+.handoff > span,.endpills .pill{display:flex;align-items:center;gap:8px;padding:clamp(5px,.55vw,9px) clamp(12px,1.3vw,20px);border-radius:999px;background:var(--orange);color:var(--white);border:3px solid var(--ink);font:400 clamp(14px,1.2vw,20px)/1 var(--f-label);box-shadow:inset 0 -5px 0 var(--sh-orange),4px 4px 0 var(--ink);text-decoration:none;cursor:pointer}
+.handoff > span{animation:handbob 1.333s steps(16,end) infinite}
+@keyframes handbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.endpills{position:absolute;left:0;right:0;bottom:1.6%;z-index:3;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px;padding:0 10px}
+.endpills .pill.ghost{background:var(--white);color:var(--ink);box-shadow:inset 0 -5px 0 var(--sh-cream),4px 4px 0 var(--ink)}
+.endpills .pill:active,.handoff:active > span{transform:translate(2px,3px);box-shadow:inset 0 -3px 0 var(--sh-orange),1px 1px 0 var(--ink)}
+.handoff .fishy,.endpills .fishy{width:26px;height:14px;flex:none;background:var(--fish) no-repeat center/contain}
+/* glass: a highlight across the top of the tube and a soft vignette at its edges (never catches a tap) */
+.screen::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:18px/15px;
+  background:linear-gradient(162deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.07) 26%,rgba(255,255,255,0) 27%),radial-gradient(130% 110% at 50% 45%,rgba(0,0,0,0) 62%,rgba(0,0,0,.28) 100%)}
+/* switched on: the screen's light spills sky blue onto the walnut, and the starburst turns (on twos) */
+.screen{transition:box-shadow .5s steps(4,end)}
+.tv.on .screen{box-shadow:inset 0 0 0 4px #333,0 0 22px 6px rgba(126,196,216,.85),0 0 62px 20px rgba(126,196,216,.4)}
+.hero::before{content:"";position:absolute;left:50%;top:42%;width:max(150vmax,1800px);height:max(150vmax,1800px);transform:translate(-50%,-50%);z-index:0;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,var(--orange) 0 9deg,var(--mustard) 9deg 18deg);animation:burst 240s steps(2880,end) infinite paused}
+.hero.on::before{animation-play-state:running;will-change:transform}
+@keyframes burst{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){
+  .hero::before,.hero.on::before{animation:none}
+  .handoff > span{animation:none}
+  .screen{transition:none}
+}
+
+/* ---------- the home page: the copy under the TV, the seven stops ---------- */
+.hero-copy{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:840px;padding:16px 22px 20px}
+.hero h1{font-size:clamp(17px,1.4vw,21px);line-height:1.1;letter-spacing:.01em}
+.hero .hero-lede{margin:0;font-size:clamp(16px,1.25vw,19px);color:var(--sand);text-wrap:pretty}
+.hero .credit{margin:0;font-size:clamp(14px,1vw,16px);line-height:1.45;color:var(--cream);text-wrap:pretty}
+.hero .credit a{color:var(--mustard);font-weight:700}
+.hero .cue{margin-top:4px}
+.stops{width:100%}
+.stops ol{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px}
+.stops a{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:5px 14px 5px 6px;background:var(--cream);color:var(--ink);border:2px solid var(--ink);border-radius:5px;
+  font:400 15px/1.1 var(--f-label);text-decoration:none;box-shadow:3px 3px 0 var(--sh-orange);
+  -webkit-mask:radial-gradient(circle 5px at 0 50%,#0000 96%,#000) left/51% 100% no-repeat,radial-gradient(circle 5px at 100% 50%,#0000 96%,#000) right/51% 100% no-repeat;
+  mask:radial-gradient(circle 5px at 0 50%,#0000 96%,#000) left/51% 100% no-repeat,radial-gradient(circle 5px at 100% 50%,#0000 96%,#000) right/51% 100% no-repeat}
+.stops a:hover{background:var(--white)}
+.stops b{display:inline-grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:var(--brick);color:var(--cream);border:2px solid var(--ink);font:400 14px/1 var(--f-label)}
+.stops.light a{background:var(--sand);box-shadow:3px 3px 0 var(--sh-tan)}
+
+/* under the hero: the lyrics, the short version and What you can do, on paper */
+.home-more{position:relative;display:flex;flex-direction:column;gap:18px;padding:30px 16px 44px;background:var(--cream);border-top:6px solid var(--ink)}
+.home-more > *{width:100%;max-width:780px;margin:0 auto}
+.homebox{background:var(--white);border:3px solid var(--ink);border-radius:10px;box-shadow:5px 6px 0 var(--sh-cream)}
+.homebox summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:12px;min-height:54px;padding:10px 16px;font:400 clamp(18px,1.5vw,21px)/1.15 var(--f-label);color:var(--ink)}
+.homebox summary::-webkit-details-marker{display:none}
+.homebox summary::before{content:"";flex:none;width:18px;height:26px;background:var(--bobber) no-repeat center/contain;transition:transform .25s steps(3,end)}
+.homebox[open] summary::before{transform:rotate(90deg)}
+.homebox[open] summary{border-bottom:2px dashed var(--ink2)}
+.homebox summary:hover{background:var(--cream)}
+.lyrnote{margin:12px 16px 0;font-size:14px;color:var(--muted)}
+.lyrics .verse{margin:14px 16px}
+.lyrics .verse p{margin:0;font-size:16px;line-height:1.55}
+.lyrics .sung{color:var(--ink2)}
+.lyrics .said b{font:400 15px/1 var(--f-label);letter-spacing:.04em;color:var(--brick)}
+.answers{list-style:none;margin:14px 16px 6px;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:ans}
+.answers li{position:relative;padding-left:42px;counter-increment:ans}
+.answers li::before{content:counter(ans);position:absolute;left:0;top:-2px;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--brick);color:var(--cream);border:3px solid var(--ink);font:400 16px/1 var(--f-label)}
+.answers .q{margin:0;font:400 19px/1.2 var(--f-label)}
+.answers .a{margin:4px 0 0;font-size:16px;line-height:1.5;text-wrap:pretty}
+.sharerow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:8px 16px 16px}
+.btn.small{min-height:46px;padding:8px 18px;font-size:17px}
+.sharemsg{font:700 14px/1.3 var(--f-mono);color:var(--seaDeep)}
+.sharemsg:empty{display:none}
+@media (prefers-reduced-motion: reduce){.homebox summary::before{transition:none}}
+
+/* ---------- What you can do: its own labeled block (home, About, the end of page 7) ---------- */
+.wycd{position:relative;margin:0;padding:18px 18px 16px;background:var(--white);border:3px solid var(--ink);border-radius:10px;box-shadow:inset 0 9px 0 var(--sea),5px 6px 0 var(--sh-cream)}
+.wycd .wycd-h{margin:6px 0 12px;font:400 clamp(24px,2.1vw,30px)/1.05 var(--f-title);color:var(--ink);text-shadow:2px 2px 0 var(--hi-mustard)}
+.wycd ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.wycd li{position:relative;padding-left:30px;font-size:16px;line-height:1.5;text-wrap:pretty}
+.wycd li::before{content:"";position:absolute;left:2px;top:3px;width:16px;height:23px;background:var(--bobber) no-repeat center/contain}
+.wycd a{color:var(--seaDeep);font-weight:800}
+.wycd .disclose{font-weight:700}
+
+/* ---------- page 7's process facts and the source lines ---------- */
+.process{margin:0;padding:12px 14px 12px 20px;background:var(--white);border:3px solid var(--ink);border-radius:6px;box-shadow:inset 7px 0 0 var(--sea),4px 5px 0 var(--sh-cream);font-size:16px;line-height:1.55;text-wrap:pretty}
+.process b{font:400 17px/1.1 var(--f-label);color:var(--seaDeep)}
+details.more p.src{font-size:14px;color:var(--muted)}
+details.more a,.process a{color:var(--seaDeep);font-weight:700}
+
+/* ---------- the footer, on every page ---------- */
+.sitefoot{position:relative;padding:22px 16px 28px;background:var(--ink);color:var(--cream);border-top:6px solid var(--sh-brown);font:400 14px/1.7 var(--f-body);text-align:center}
+.sitefoot p{margin:0 auto;max-width:1000px;text-wrap:balance}
+.sitefoot a{color:var(--mustard);font-weight:700}
+.sitefoot .dot{margin:0 3px;opacity:.6}
+.sitefoot .sharemsg{margin-top:6px;color:var(--sky)}
+
+/* ---------- About and 404: the same shell, no interactives ---------- */
+.toplink{display:none}
+.plain .topbar .line a{cursor:pointer}
+main.about{display:flex;flex-direction:column;align-items:center;gap:26px;padding:30px 16px 52px;min-height:calc(100svh - var(--top))}
+main.about > *{width:100%;max-width:780px}
+.aboutcard{padding:24px clamp(18px,3vw,34px) 28px;background:var(--white);border:3px solid var(--ink);border-radius:10px;box-shadow:6px 7px 0 var(--sh-cream)}
+.aboutcard h1{margin:6px 0 12px;font:400 clamp(30px,4vw,44px)/1.05 var(--f-title);color:var(--ink);text-wrap:balance;text-shadow:3px 3px 0 var(--hi-mustard)}
+.aboutcard h2{margin:24px 0 6px;font:400 22px/1.15 var(--f-label);color:var(--brick)}
+.aboutcard p,.aboutcard li{font-size:17px;line-height:1.55;text-wrap:pretty}
+.aboutcard p{margin:0 0 8px}
+.about-lede{font-size:clamp(18px,1.4vw,20px)!important}
+.aboutcard a{color:var(--seaDeep);font-weight:700}
+.sources{margin:0 0 10px;padding-left:22px}
+.sources li{margin-bottom:8px}
+.sources li::marker{color:var(--brick)}
+.whomade .logos{margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:22px 40px;padding:18px;background:var(--cream);border:2px dashed var(--ink2);border-radius:10px}
+.whomade .logos a{display:block}
+.whomade img{display:block;height:auto}
+.whomade a:first-child img{width:min(300px,64vw)}
+.whomade a:last-child img{width:112px}
+.lost .lostposter{display:block;margin:10px 0 16px}
+.lost .lostposter img{display:block;width:100%;height:auto;border:6px solid var(--ink);border-radius:14px;box-shadow:6px 7px 0 var(--sh-tan)}
+.lost .stops{margin-top:10px}
+@media (max-aspect-ratio: 1/1), (max-width: 820px){
+  .toplink{display:inline-flex;align-items:center;margin-left:auto;min-height:40px;padding:6px 12px;border-radius:999px;border:2px solid var(--cream);color:var(--cream);font:400 15px/1 var(--f-label);text-decoration:none;white-space:nowrap}
+  /* the Play pill at phone size, so it stops covering the poster's lower third */
+  .bigplay{padding:0 0 2px}
+  .bigplay > span,.handoff > span,.endpills .pill{gap:6px;padding:3px 10px;line-height:1;border-width:3px;font-size:14px;box-shadow:inset 0 -4px 0 var(--sh-orange),3px 3px 0 var(--ink)}
+  .endpills .pill.ghost{box-shadow:inset 0 -4px 0 var(--sh-cream),3px 3px 0 var(--ink)}
+  .handoff{bottom:2px}
+  .endpills{bottom:2px;gap:8px;padding:0 4px;flex-wrap:nowrap}
+  .endpills .fishy{display:none}
+  .hero-copy{padding:14px 14px 16px;gap:9px}
+  .stops a{font-size:14px;min-height:38px;padding:4px 11px 4px 5px}
+  .home-more{padding:24px 12px 36px}
+  .homebox summary{padding:10px 12px}
+  .answers,.lyrics .verse,.lyrnote{margin-left:12px;margin-right:12px}
+  .sharerow{margin:8px 12px 14px}
+  .aboutcard{padding:20px 16px 24px}
+}
+
+/* ---------- landscape phones: the TV fills the screen's height and drops its knobs ---------- */
+@media (orientation: landscape) and (max-height: 500px){
+  .hero{justify-content:flex-start;min-height:0;padding:6px 16px 20px;gap:14px}
+  .tv{grid-template-columns:1fr;gap:0;padding:6px;border-width:4px;border-radius:16px;box-shadow:inset 0 -6px 0 var(--sh-brown),6px 7px 0 var(--ink);
+    width:min(100%,calc((100svh - var(--top) - 32px) * 16 / 9 + 20px))}
+  .knobs{display:none}
+  .screen{border-width:5px;border-radius:14px/12px}
+  .screen::after{border-radius:10px/8px}
+}

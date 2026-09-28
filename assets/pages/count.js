@@ -6,8 +6,10 @@
    Steps: exit polls; the mail survey counts trips (13.9M in 2025); the dock interviews give fish per trip
    (about one); the machine cranks out the total catch (13.2M); the corrected mail survey sends 11.6M
    trips; the machine cranks again (10.4M). Each step spotlights its part of the picture. Then it's the
-   reader's turn: a year picker (paired bars, old beside corrected total catch, 2000 to 2025), Old count
-   or Corrected, and the crank (drag the red knob round, or press Turn the crank).
+   reader's turn, one gesture (director 2): turn the crank. Each full turn, dragged or tapped, runs the next
+   year back from 2025 to 2000 through the machine: the nameplate flips to the year and the cart prints the
+   gray OLD and the blue CORRECTED card side by side. A ratchet clicks every quarter turn (polish B3). The
+   knob takes keyboard focus: Enter or Space gives one turn, the arrow keys move a year.
    No fish-per-trip number is shown on the machine or in the readout: NOAA multiplies state by state,
    wave by wave and mode by mode, so the year's average fish per trip shifts a little between the counts
    even though the interviews are the same, and a number that changed confused readers. The step text
@@ -19,10 +21,10 @@ SITE.register({
     var Y25 = Y.indexOf(2025), P0 = Y.indexOf(2000);
     var st8 = { fixed: false, i: Y25, ang: 0, turn: 0, out: { old: false, fixed: false }, tried: false,
       sPose: 'ready', stamped: false, auto: 0, blinkWho: 0, dragging: false, shownT: false, shownF: false,
-      showT: false, showF: false, focus: null, play: false, banner: false, kitLine: null };
+      showT: false, showF: false, focus: null, play: false, banner: false, kitLine: null, q: 0, byReader: false };
     // scripted moments, counted in held drawings (12 a second); -1 = not playing
-    var T = { lob: -1, ding: -1, stamp: -1, env: -1, tap: -1, dropT: -1, dropF: -1, ghost: -1, kit: -1, cheer: -1, flip: -1, blink: -1, hh: -1, back: -1, inT: -1, inF: -1, fz: -1, ban: -1 };
-    var LEN = { lob: 5, ding: 30, stamp: 5, env: 10, tap: 18, dropT: 5, dropF: 7, ghost: 4, kit: 22, cheer: 16, flip: 2, blink: 2, hh: 14, back: 4, inT: 7, inF: 7, fz: 3, ban: 4 };
+    var T = { lob: -1, ding: -1, stamp: -1, env: -1, tap: -1, dropT: -1, dropF: -1, ghost: -1, kit: -1, cheer: -1, flip: -1, blink: -1, hh: -1, back: -1, inT: -1, inF: -1, fz: -1, ban: -1, click: -1 };
+    var LEN = { lob: 5, ding: 30, stamp: 5, env: 10, tap: 18, dropT: 5, dropF: 7, ghost: 4, kit: 22, cheer: 16, flip: 2, blink: 2, hh: 14, back: 4, inT: 7, inF: 7, fz: 3, ban: 4, click: 2 };
     function vals(i, fixed) {
       var to = D.trips.old[i], tf = D.trips.fixed[i];
       var co = D.kept.old[i] + D.released.old[i], cf = D.kept.fixed[i] + D.released.fixed[i];
@@ -49,38 +51,34 @@ SITE.register({
       '#count .op{align-self:center;font:400 clamp(30px,2.8vw,46px)/1 var(--f-title)}' +
       '#count .chip.pop{animation:countPop .3s steps(3,end)}' +
       '@keyframes countPop{0%{transform:scale(1.14)}60%{transform:scale(.97)}100%{transform:none}}' +
-      '#count.playing .chip b{font-size:clamp(22px,1.8vw,30px)}#count.playing .chip{padding:5px 12px 4px}#count.playing .eqyr b{font-size:clamp(20px,1.6vw,26px)}' +
-      '#count.playing .chip .fish{height:26px}#count.playing .op{font-size:clamp(24px,2vw,34px)}' +
-      // the controls row: the year picker, then Old / Corrected and the crank
-      '#count .sc-play{align-items:flex-end}' +
-      '#count .ppick{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}' +
-      '#count .phead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font:400 16px/1.2 var(--f-label)}' +
-      '#count .phead b{font:700 16px/1 var(--f-mono)}#count .phead .yr{font:400 19px/1 var(--f-label);color:var(--brick)}' +
-      '#count .sw{display:inline-block;width:12px;height:14px;margin-right:5px;border:2px solid var(--ink);border-radius:2px;vertical-align:-2px}#count .sw.o{background:var(--silver)}#count .sw.c{background:var(--sea)}' +
-      '#count .pctl{display:flex;flex-direction:column;gap:8px;width:clamp(210px,17vw,262px)}' +
-      '#count .crankbtn .sm{display:none}' +
-      '#count .pctl .seg{padding:4px;gap:4px}' +
-      '#count .crankbtn{min-height:48px;padding:6px 18px 6px 10px;font-size:18px;justify-content:center}' +
-      '#count .crankbtn i{display:block;width:34px;height:34px;flex:none;border-radius:50%;background:var(--mustard);border:3px solid var(--ink);position:relative;box-shadow:inset -4px -4px 0 var(--sh-mustard)}' +
-      '#count .crankbtn i::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:15px;margin:-15px 0 0 -2.5px;background:var(--brown);border:2px solid var(--ink);border-radius:3px;transform-origin:50% 100%;transform:rotate(var(--crk,0deg))}' +
-      '#count .crankbtn i::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--brick);border:2px solid var(--ink);transform:rotate(var(--crk,0deg)) translateY(-13px)}' +
-      '#count .crankbtn[aria-busy="true"] i::before,#count .crankbtn[aria-busy="true"] i::after{animation:countCrk .5s steps(6,end) infinite}' +
-      '@keyframes countCrk{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}' +
-      '#count .crankbtn[aria-busy="true"] i::after{animation-name:countCrkK}' +
-      '@keyframes countCrkK{from{transform:rotate(0deg) translateY(-13px)}to{transform:rotate(360deg) translateY(-13px)}}' +
-      '#count .navrow .btn.nudge{animation:countNudge 1.2s steps(6,end) 3}' +
-      '@keyframes countNudge{0%,100%{transform:translateY(0)}20%{transform:translateY(-6px)}40%{transform:translateY(0)}60%{transform:translateY(-3px)}}' +
+      // the reader's turn: the ticket stub under the picture, two rows (old count, corrected) for the year in the machine
+      '#count.playing .eq{display:none}' +
+      '#count .sc-play{justify-content:center}' +
+      '#count .stub{display:flex;align-items:stretch;justify-content:center;gap:clamp(8px,.9vw,14px)}' +
+      '#count .stub .eqyr{min-width:clamp(78px,7vw,112px)}' +
+      '#count .rows{display:flex;flex-direction:column;min-width:0;background:var(--white);border:3px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--sh-tan);overflow:hidden}' +
+      '#count .row{display:flex;align-items:center;gap:clamp(6px,.7vw,10px);padding:6px 14px;font:400 clamp(15px,1.1vw,18px)/1.1 var(--f-label);white-space:nowrap}' +
+      '#count .row+.row{border-top:2px dashed var(--ink)}#count .row>*{flex:none}' +
+      '#count .row .lab{min-width:6.3em;color:var(--muted)}' +
+      '#count .row .lab i{display:inline-block;width:12px;height:14px;margin-right:6px;border:2px solid var(--ink);border-radius:2px;vertical-align:-2px;background:var(--silver)}' +
+      '#count .row b{font:700 clamp(19px,1.6vw,26px)/1 var(--f-mono);font-variant-numeric:tabular-nums}' +
+      '#count .row .op{font-size:clamp(18px,1.4vw,24px)}' +
+      '#count .row .fish{display:block;width:clamp(34px,2.6vw,44px);height:clamp(18px,1.3vw,22px);background:var(--fish) no-repeat center/contain}' +
+      '#count .row.c{background:var(--sea);color:var(--cream)}#count .row.c .lab{color:var(--cream)}#count .row.c .lab i{background:var(--seaDeep)}' +
+      '#count .row b.pop{animation:countPop .3s steps(3,end)}' +
+      // the knob's keyboard handle: an invisible circle over the crank that takes focus (the drawing redraws under it)
+      '#count .knobkey{position:absolute;z-index:4;display:none;border-radius:50%;pointer-events:none}' +
+      '#count.playing .knobkey{display:block}' +
+      '#count .knobkey:focus-visible{outline:4px solid var(--ink);outline-offset:0;box-shadow:0 0 0 7px var(--cream)}' +
       '@media (max-aspect-ratio: 1/1), (max-width: 820px){' +
         '#count .eqyr{min-width:58px;padding:4px 6px}#count .eqyr b{font-size:19px}#count .eqyr small{font-size:9.5px}' +
-        '#count .chip{min-width:0;flex:1;padding:5px 4px 4px;box-shadow:3px 3px 0 var(--sh-tan)}#count .chip b,#count.playing .chip b{font-size:19px}#count .chip small{font-size:12px}' +
-        '#count .chip .fish,#count.playing .chip .fish{width:40px;height:19px}#count .op,#count.playing .op{font-size:22px}#count .eq{gap:4px}' +
-        '#count.playing .eq{display:none}' +
-        '#count .pctl{width:auto;flex-direction:row;align-items:stretch}#count .pctl .ctl{flex:1;min-width:0}#count .pctl .seg{flex-wrap:nowrap}#count .pctl .seg button{flex:1 1 0;min-height:42px;padding:4px 6px;font-size:15px;white-space:nowrap}' +
-        '#count .crankbtn{flex:none;min-height:0;font-size:16px;padding:4px 14px 4px 8px;gap:6px}#count .crankbtn i{width:28px;height:28px}#count .crankbtn .lg{display:none}#count .crankbtn .sm{display:inline}' +
-        '#count .ycols{height:50px}#count .sc-play{flex-direction:column-reverse}' +
-        '#count .phead{font-size:14px;gap:2px 10px}#count .phead b{font-size:14px}#count .phead .yr{font-size:16px}' +
+        '#count .chip{min-width:0;flex:1;padding:5px 4px 4px;box-shadow:3px 3px 0 var(--sh-tan)}#count .chip b{font-size:19px}#count .chip small{font-size:12px}' +
+        '#count .chip .fish{width:40px;height:19px}#count .op{font-size:22px}#count .eq{gap:4px}' +
+        '#count .stub{gap:6px}#count .stub .eqyr{min-width:54px}#count .rows{flex:1;box-shadow:3px 3px 0 var(--sh-tan)}' +
+        '#count .row{gap:5px;padding:4px 8px;font-size:13.5px}#count .row .lab{min-width:5.6em}#count .row b{font-size:16px}#count .row .op{font-size:16px}#count .row .fish{width:28px;height:14px}' +
       '}' +
-      '@media (prefers-reduced-motion: reduce){#count .crankbtn[aria-busy="true"] i::before,#count .crankbtn[aria-busy="true"] i::after,#count .navrow .btn.nudge,#count .chip.pop{animation:none}}';
+      '@media (max-width: 400px){#count .row small.t{display:none}#count .row .lab{min-width:0}#count .row{gap:5px;padding:6px 10px}#count .stub .eqyr{min-width:0}}' +
+      '@media (prefers-reduced-motion: reduce){#count .chip.pop,#count .row b.pop{animation:none}}';
     document.head.appendChild(css);
 
     /* ---------------- layout: laptop (1920 x 1080..1320, anchored to the planks) and phone (1080 x 1250) ---------------- */
@@ -301,7 +299,8 @@ SITE.register({
           if (p[2]) s += path('M' + N(p[0] + (p[1] - p[0]) * 0.3) + ',' + N(L.inY + L.inH / 2 + 4) + ' L' + N(p[1]) + ',' + N(L.FL - 420 * L.MS - 14), 'none', 6, ' stroke-dasharray="14 12"', C.brown);
         });
       }
-      var vt = vals(st8.i, st8.shownT);
+      var vt = vals(st8.i, st8.shownT), tr = strain();
+      if (tr) { yT += tr; yF -= tr; }
       if (st8.showT) s += S.cel(inCard(L.inX[0], yT, L.inW[0], L.inH, 'TRIPS', S.m(vt.trips), { hs: L.inHs, ns: L.inNs, rot: L.inRot[0], style: st8.shownT ? 'corrected' : 'plain', sq: sqT }));
       if (st8.showF) s += S.cel(inCard(L.inX[1], yF, L.inW[1], L.inH, 'FISH PER TRIP', '', { hs: L.inHs, ns: L.inNs, rot: L.inRot[1], sq: sqF, fish: true }));
       return s;
@@ -384,7 +383,8 @@ SITE.register({
       var inAir = T.lob >= 0;
       // the old spot: the old card, its gray ghost (corrected mode), or a "?" until the first crank
       var o = sp.old;
-      if (st8.fixed) {
+      if (st8.fixed && !st8.out.old) s += catchCard(o[0], o[1], L, { kind: 'wait', rot: -2 });
+      else if (st8.fixed) {
         if (T.ghost >= 0 && T.ghost < 2) {
           s += S.shadow(o[0], L.FL - 2, L.CW) + catchCard(o[0], o[1], L, { num: S.m(v.catchOld), foot: yr, rot: -2 });
           if (T.ghost === 1) s += rect(o[0] - L.CW / 2, o[1] - L.CH / 2, L.CW, L.CH, C.cream, 0, 16, ' opacity=".55"');
@@ -480,6 +480,9 @@ SITE.register({
       return s;
     }
 
+    /* the machine strains in the last quarter of a turn: it trembles on alternate drawings, so the pop reads as a release */
+    function strain() { return !S.reduce && T.lob < 0 && st8.turn >= 270 ? (stage.drawing % 2 ? 3 : -3) : 0; }
+
     /* ---------------- the leads ---------------- */
     function crankAngle() { return Math.round(st8.ang / 15) * 15; }
     function striperO(L) {
@@ -488,7 +491,10 @@ SITE.register({
       if (st8.sPose === 'tip') { o.pose = 'tipBack'; o.expr = 'happy'; o.look = [0.2, 0.3]; return o; }
       var f = Math.floor((((q % 360) + 360) % 360 + 60) / 120) % 3;
       o.pose = 'crank'; o.frame = f; o.reach = K.multiplierKnob({ x: L.MX, y: L.FL, scale: L.MS, crank: q / 360 });
-      if (st8.sPose === 'ready') { o.expr = 'kind'; o.look = 'cam'; }
+      if (st8.sPose === 'ready') {
+        o.expr = 'kind'; o.look = 'cam'; o.squash = S.breath(stage);
+        var lk = st8.play && S.lookAt(stage, K.striperPoints(o).eye, o.flip); if (lk) o.look = lk;
+      }
       return o;
     }
     function kitO(L) {
@@ -499,6 +505,8 @@ SITE.register({
       else if (st8.kitLine === 'fewer') { o.pose = 'point'; o.aim = 6; o.expr = 'talk'; o.mouth = talk ? flap(T.kit) : 'closed'; o.look = [1, 0.2]; }
       else if (T.cheer >= 0) { o.pose = 'cheer'; o.expr = 'grin'; }
       else if (st8.turn > 0 || T.lob >= 0 || st8.auto > 0) { o.expr = 'wide'; o.look = [1, 0.3]; }
+      // Your turn: her eyes follow the reader's finger or cursor (never over a scripted look)
+      if (st8.play && !st8.kitLine && T.cheer < 0 && !(T.env >= 0 && T.env < LEN.env)) { var lk = S.lookAt(stage, K.kidPoints(o).eye, o.flip); if (lk) o.look = lk; }
       return o;
     }
     function balloons(L) {
@@ -524,10 +532,7 @@ SITE.register({
     }
     function spotlight(L) {
       var rs = focusRects(L); if (!rs) return '';
-      var op = T.fz >= 0 ? [0.12, 0.26, 0.36, 0.4][Math.min(3, T.fz)] : 0.4, W = L.W + 40, H = L.H + 40;
-      var m = '<mask id="cntSpot" maskUnits="userSpaceOnUse" x="-20" y="-20" width="' + W + '" height="' + H + '"><rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="#fff"/>' +
-        rs.map(function (r) { return rect(r[0], r[1], r[2], r[3], '#000', 0, 30); }).join('') + '</mask>';
-      return m + '<rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="' + INK + '" opacity="' + op + '" mask="url(#cntSpot)"/>';
+      return S.spot(L.W, L.H, rs, T.fz >= 0 ? [0.3, 0.65, 0.9, 1][Math.min(3, T.fz)] : 1, 30);
     }
 
     /* two little boats on the water and a gull (the film's coast strip), bobbing on twos */
@@ -561,8 +566,11 @@ SITE.register({
       // the cards in the funnels go behind the machine, so the funnel cones hold them
       s += funnelCards(L);
       var msq = T.lob === 0 ? 0.06 : T.lob === 1 ? -0.03 : 0, mtr = msq ? 'translate(' + L.MX + ' ' + L.FL + ') scale(' + (1 + msq) + ' ' + (1 - msq) + ') translate(' + (-L.MX) + ' ' + (-L.FL) + ')' : '';
-      s += S.shadow(L.MX, L.FL, 480 * L.MS) + S.cel(K.multiplier({ x: L.MX, y: L.FL, scale: L.MS, crank: crankAngle() / 360, squash: msq }));
-      s += grp(nameplate(L) + crankTop(L) + S.cel(flipYear(L)), mtr);
+      var jx = (T.click >= 0 ? [5, -3, 0][Math.min(2, T.click)] : 0) + strain();
+      if (jx) mtr = 'translate(' + jx + ' 0)' + (mtr ? ' ' + mtr : '');
+      s += S.shadow(L.MX, L.FL, 480 * L.MS) + S.cel(K.multiplier({ x: L.MX + jx, y: L.FL, scale: L.MS, crank: crankAngle() / 360, squash: msq }));
+      var burst = T.click >= 0 && T.click < 2 ? K.starburst(hub(L)[0], hub(L)[1], 40 * L.MS, 22 * L.MS, 8, C.cream, T.click * 0.2) : '';
+      s += grp(nameplate(L) + burst + crankTop(L) + S.cel(flipYear(L)), mtr);
       s += emerging(L, v);
       s += cardTags(L, v);
       s += restingCards(L, v);
@@ -573,7 +581,7 @@ SITE.register({
       s += hint(L);
       // the grab area (the reader's turn only): the knob's whole circle, so a drag can start anywhere on the handle
       var c = orbit(L);
-      if (st8.play) s += S.grab('knob', '<circle cx="' + N(c[0]) + '" cy="' + N(c[1]) + '" r="' + N(118 * L.MS) + '" fill="transparent"/>', c[0], c[1], 0);
+      if (st8.play) s += S.grab('knob', '', c[0], c[1], Math.round(118 * L.MS));
       s += envelope(L);
       s += lobbing(L, v) + ding(L);
       s += balloons(L);
@@ -581,7 +589,7 @@ SITE.register({
     }
     var stage = api.stage(draw, function () {
       var v = vals(st8.i, st8.fixed), out = st8.out[key()];
-      return 'The count, ' + Y[st8.i] + (st8.fixed ? ', corrected' : ', old count') + ': the mail survey’s ' + S.m(v.trips) + ' trips times the fish per trip from the dock interviews' +
+      return 'The count, ' + Y[st8.i] + (st8.fixed ? ', corrected' : ', old count') + ': the mail survey’s ' + S.m(v.trips) + ' trips times the fish per trip from the ramp survey' +
         (out ? ' gives a total catch of ' + S.m(v.catch) + ' fish.' : '.') + (st8.fixed && out ? ' The old count was ' + S.m(v.catchOld) + '.' : '');
     });
 
@@ -600,7 +608,7 @@ SITE.register({
         last = now;
         var busy = step();
         stage.drawing++; stage.render();
-        if (!busy) { raf = 0; cbtn.setAttribute('aria-busy', 'false'); return; }
+        if (!busy) { raf = 0; return; }
       }
       raf = requestAnimationFrame(tick);
     }
@@ -616,6 +624,7 @@ SITE.register({
         if (st8.auto <= 0 && T.lob < 0 && st8.sPose === 'crank') st8.sPose = 'ready';
       }
       // cues inside the moments
+      if (T.lob === 2 && st8.play && !st8.out.old) { st8.out.old = true; T.ghost = 0; show(); }
       if (T.lob === 4) { T.ding = 0; st8.sPose = 'tip'; if (!st8.fixed) T.cheer = 0; busy = true; show(); }
       if (T.lob === LEN.lob && st8.fixed && st8.out.fixed && !st8.stamped) { T.stamp = 0; st8.stamped = true; }
       if (T.stamp === 3 && st8.fixed) {
@@ -629,34 +638,47 @@ SITE.register({
       return busy || T.ding >= 0;
     }
     function ended(k) { if (k === 'env') show(); }
-    function nudge() {
-      var b = api.nav && api.nav.querySelector('.btn');
-      if (b && !S.reduce) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); }
-    }
 
     /* ---------------- the crank ---------------- */
     function crankBy(d) {
       var q0 = crankAngle();
+      // the reader's turn: the first move of a turn brings in the next year back (2025, 2024 ... 2000, then 2025 again)
+      if (st8.play && d > 0 && st8.turn === 0 && T.lob < 0 && st8.out.fixed) nextYear();
       st8.ang += d;
       if (st8.sPose !== 'crank') st8.sPose = 'crank';
       if (T.lob < 0 && T.env < 0) {
         st8.turn = S.clamp(st8.turn + d, 0, 360);
+        ratchet();
         if (st8.turn >= 360) popCard();
       }
       return crankAngle() !== q0;
     }
+    /* a click every quarter turn: the machine jolts and a starburst flashes at the hub for two drawings */
+    function ratchet() {
+      var q = Math.floor(st8.turn / 90);
+      if (q > st8.q && q < 4) { st8.q = q; T.click = 0; if (st8.byReader) S.buzz(6); if (!raf) run(); }
+      else if (q < st8.q) st8.q = q;
+    }
     function popCard() {
       var k = key();
-      st8.out[k] = true; st8.turn = 0; T.lob = 0; st8.auto = 0; T.cheer = -1;
+      st8.out[k] = true; st8.turn = 0; st8.q = 0; T.lob = 0; st8.auto = 0; T.cheer = -1;
       if (st8.fixed) st8.stamped = false;
       if (raf) { stage.drawing++; stage.render(); } else run();
     }
-    var cbtn;
+    /* the next year back goes into the machine: the plate flips, its trips card drops into the funnel, and both
+       card spots wait for the turn to print them */
+    function nextYear() {
+      st8.i = st8.i > P0 ? st8.i - 1 : Y25;
+      T.flip = 0; T.dropT = 0; T.ghost = -1; T.stamp = -1; T.ding = -1;
+      st8.out.old = false; st8.out.fixed = false; st8.stamped = false;
+      if (st8.kitLine === 'fewer') st8.kitLine = null;
+      show();
+    }
+    /* one whole turn by itself (a tap on the knob, Enter or Space) */
     function turnAuto() {
-      if (!st8.play) return;
-      st8.tried = true;
+      if (!st8.play || T.lob >= 0) return;
+      st8.tried = true; st8.byReader = true;
       st8.auto = Math.max(st8.auto, Math.ceil((360 - st8.turn) / 30) * 30);
-      cbtn.setAttribute('aria-busy', 'true');
       run();
     }
     function setMode(f) {
@@ -673,34 +695,37 @@ SITE.register({
       }
       show(); run();
     }
+    /* the arrow keys: straight to a year, both cards printed and the corrected one stamped */
     function pickYear(i) {
-      if (i === st8.i) return;
-      st8.i = i; T.flip = 0; show(); run();
+      i = S.clamp(i, P0, Y25);
+      if (i === st8.i && st8.out.fixed && T.lob < 0) return;
+      st8.auto = 0; st8.turn = 0; st8.q = 0; st8.tried = true;
+      T.lob = -1; T.ghost = -1; T.ding = -1; T.dropT = -1; T.click = -1;
+      st8.i = i; T.flip = 0; st8.out.old = true; st8.out.fixed = true; st8.stamped = true; T.stamp = 0;
+      if (st8.sPose !== 'ready') st8.sPose = 'ready';
+      show(); run();
     }
 
     /* ---------------- the walkthrough ---------------- */
     var v25 = vals(Y25, false), f25 = vals(Y25, true);
     function mil(x) { return '<span class="num">' + x.toFixed(1) + ' million</span>'; }
     var STEPS = [
-      { focus: null, cls: 'first', h: '<p>Nobody can count every angler on the coast. So NOAA asks some of them and scales the answers up to everyone, the way TV networks call an election from exit polls.</p>' +
-        '<p>Counting the striped bass that anglers catch takes two surveys.</p>' },
-      { focus: 'mail', h: '<p><b>The mail survey counts trips.</b> NOAA mails a form to households and asks how many times they went saltwater fishing, then scales the answers up to all anglers.</p>' +
-        '<p>For 2025 it came to <b>' + mil(v25.trips) + ' striper fishing trips</b>.</p>' },
-      { focus: 'ramp', h: '<p><b>The dock interviews count fish per trip.</b> Interviewers at ramps, docks and beaches ask anglers what they caught, including the fish they let go.</p>' +
-        '<p>In 2025 that averaged <b>about one striper per trip</b>.</p>' },
-      { focus: 'machine', h: '<p><b>Trips × fish per trip = total catch.</b> Multiply the two and you get NOAA’s estimate of all the stripers anglers caught, kept and released.</p>' +
+      { focus: null, cls: 'first', h: '<p>NOAA can’t count every angler, so it asks some and scales up to everyone, like calling an election from exit polls. Kit and the Striper from the song will show you the two surveys.</p>' },
+      { focus: 'mail', h: '<p><b>The mail survey counts trips.</b> NOAA mails a form to a sample of households asking how many times they went saltwater fishing.</p>' +
+        '<p>For 2025: <b>' + mil(v25.trips) + ' striper trips</b>.</p>' },
+      { focus: 'ramp', h: '<p><b>The ramp survey counts fish per trip.</b> Interviewers at ramps and beaches ask anglers what they caught, released fish included.</p>' +
+        '<p>For 2025: <b>about one striper per trip</b>.</p>' },
+      { focus: 'machine', h: '<p><b>Trips × fish per trip = total catch:</b> every striper anglers caught, kept or released.</p>' +
         '<p>For 2025: <b>' + mil(v25.catch) + ' fish</b>.</p>' },
-      { focus: 'fix', h: '<p><b>In August 2026, NOAA corrected the mail survey.</b> It had been counting too many trips. The corrected count for 2025 is <b>' + mil(f25.trips) + ' trips</b>, down from ' + mil(v25.trips) + '.</p>' +
-        '<p>The dock interviews were not changed.</p>' },
+      { focus: 'fix', h: '<p><b>In August 2026, NOAA corrected the mail survey.</b> It had counted too many trips: 2025 drops from ' + mil(v25.trips) + ' to <b>' + mil(f25.trips) + ' trips</b>. The ramp survey didn’t change.</p>' },
       { focus: 'machine', h: '<p><b>Same multiplication, fewer trips.</b> The corrected total catch for 2025 is <b>' + mil(f25.catch) + ' fish</b>, compared with ' + mil(v25.catch) + ' in the old count.</p>' },
-      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>Pick any year from 2000 to 2025 on the chart under the picture. Switch between the old and corrected counts, and turn the crank: drag the red knob round, or press the button.</p>' +
-        '<p>Every year, the corrected total catch is lower.</p>' }
+      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>Turn the crank to run another year through the machine, back to 2000. Every year, the corrected total catch comes out lower.</p>' }
     ];
     var PLAY = STEPS.length - 1, OUTRO = STEPS.length;
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
 
     /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion) */
-    function snap(n) {
+    function snap(n, quiet) {
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       Object.keys(T).forEach(function (k) { T[k] = -1; });
       var play = n >= PLAY;
@@ -709,10 +734,10 @@ SITE.register({
       st8.out.old = n >= 3; st8.out.fixed = n >= 5; st8.stamped = n >= 5;
       st8.kitLine = n === 5 ? 'fewer' : n >= OUTRO ? 'why' : null;
       st8.turn = 0; st8.auto = 0; st8.ang = 0; st8.sPose = 'ready'; st8.banner = n >= 3;
-      st8.focus = n === 5 ? null : (STEPS[n] ? STEPS[n].focus : null); st8.play = play;
-      cbtn.setAttribute('aria-busy', 'false');
+      st8.focus = n === 5 ? null : (STEPS[n] ? STEPS[n].focus : null); st8.play = play; st8.q = 0; st8.byReader = false;
+      knobKey.setAttribute('tabindex', play ? '0' : '-1');
       api.playing(play);
-      show(); stage.drawing++; stage.render();
+      show(); if (!quiet) { stage.drawing++; stage.render(); }
     }
     /* step n's entrance, played from the finished state of step n - 1 */
     function enter(n) {
@@ -722,49 +747,66 @@ SITE.register({
       else if (n === 3) { st8.banner = true; T.ban = 0; st8.auto = 360; }
       else if (n === 4) { setMode(true); }
       else if (n === 5) { st8.auto = 360; }
-      else if (n === PLAY) { st8.play = true; api.playing(true); st8.focus = null; }
+      else if (n === PLAY) { st8.play = true; knobKey.setAttribute('tabindex', '0'); api.playing(true); st8.focus = null; }
       show(); run();
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) {
         // between the last step and the closing card: keep whatever the reader set up
-        if (n === OUTRO) { st8.kitLine = 'why'; T.kit = 0; api.gotIt(); nudge(); }
+        if (n === OUTRO) { st8.kitLine = 'why'; T.kit = 0; S.reward(api); }
         else if (st8.kitLine === 'why') st8.kitLine = null;
         run(); return;
       }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
-      if (n === OUTRO) { api.gotIt(); nudge(); }
+      if (n === OUTRO) S.reward(api);
     });
 
     /* ---------------- the readout under the picture, and the reader's controls ---------------- */
     var eq = S.el('div', { class: 'eq', 'aria-live': 'polite' }, api.bar,
       '<span class="eqyr"><b></b><small></small></span>' +
       '<span class="chip t"><b></b><small>trips</small></span><span class="op" aria-hidden="true">×</span>' +
-      '<span class="chip f"><i class="fish" role="img" aria-label="from the dock interviews"></i><b></b><small>fish per trip</small></span><span class="op" aria-hidden="true">=</span>' +
-      '<span class="chip c"><b></b><small>total catch</small></span>');
+      '<span class="chip f"><i class="fish" role="img" aria-label="from the ramp survey"></i><b></b><small>fish per trip</small></span><span class="op" aria-hidden="true">=</span>' +
+      '<span class="chip c" data-big><b></b><small>total catch</small></span>');
     var cT = eq.querySelector('.chip.t'), cF = eq.querySelector('.chip.f'), cC = eq.querySelector('.chip.c');
+    // the reader's turn: the ticket stub, one row for the old count and one for the corrected count
     var playRow = S.el('div', { class: 'sc-play' }, api.bar);
-    var ppick = S.el('div', { class: 'ppick' }, playRow), phead = S.el('div', { class: 'phead', 'aria-hidden': 'true' }, ppick);
-    var PY = Y.slice(P0);
-    var pick = S.yearPicker(ppick, {
-      years: PY, max: 60, value: Y25 - P0, aria: 'Pick a year',
-      series: [{ cls: 'o', vals: PY.map(function (y, k) { return vals(P0 + k).catchOld; }) }, { cls: 'c', vals: PY.map(function (y, k) { return vals(P0 + k).catchNew; }) }],
-      label: function (k) { var w = vals(P0 + k); return PY[k] + ': total catch, old count ' + S.m(w.catchOld) + ' fish, corrected ' + S.m(w.catchNew) + ' fish'; },
-      onPick: function (k) { pickYear(P0 + k); }
+    var stub = S.el('div', { class: 'stub' }, playRow,
+      '<span class="eqyr"><b></b><small>total catch</small></span><span class="rows">' +
+      '<span class="row o"><span class="lab"><i></i>Old count</span><b class="t"></b><small class="t">trips</small><span class="op" aria-hidden="true">×</span><i class="fish" role="img" aria-label="fish per trip"></i><span class="op" aria-hidden="true">=</span><b class="c"></b></span>' +
+      '<span class="row c"><span class="lab"><i></i>Corrected</span><b class="t"></b><small class="t">trips</small><span class="op" aria-hidden="true">×</span><i class="fish" role="img" aria-label="fish per trip"></i><span class="op" aria-hidden="true">=</span><b class="c"></b></span></span>');
+    var rO = stub.querySelector('.row.o'), rC = stub.querySelector('.row.c');
+    // the knob's keyboard handle, kept over the crank after every drawing
+    var knobKey = S.el('div', { class: 'knobkey', role: 'slider', tabindex: '-1', 'aria-label': 'The crank. Enter or Space turns it once and runs the next year back; the arrow keys pick a year.',
+      'aria-valuemin': Y[P0], 'aria-valuemax': Y[Y25] }, api.stageHost);
+    function placeKnob() {
+      if (!st8.play) return;
+      var m = stage.svg.getScreenCTM(); if (!m) return;
+      var L = lay(stage), c = orbit(L), hr = api.stageHost.getBoundingClientRect(), r = Math.max(24, 118 * L.MS * m.a);
+      var x = m.a * c[0] + m.e - hr.left, y = m.d * c[1] + m.f - hr.top;
+      knobKey.style.left = (x - r).toFixed(1) + 'px'; knobKey.style.top = (y - r).toFixed(1) + 'px'; knobKey.style.width = knobKey.style.height = (2 * r).toFixed(1) + 'px';
+    }
+    var render0 = stage.render;
+    stage.render = function () { render0(); placeKnob(); };
+    knobKey.addEventListener('keydown', function (e) {
+      var k = e.key, i = st8.i, to = null;
+      if (!st8.play) return;
+      if (k === 'Enter' || k === ' ' || k === 'Spacebar') { e.preventDefault(); if (!e.repeat) turnAuto(); return; }
+      if (k === 'ArrowLeft' || k === 'ArrowDown') to = i - 1; else if (k === 'ArrowRight' || k === 'ArrowUp') to = i + 1;
+      else if (k === 'Home') to = P0; else if (k === 'End') to = Y25; else if (k === 'PageDown') to = i - 5; else if (k === 'PageUp') to = i + 5;
+      if (to == null) return;
+      e.preventDefault(); pickYear(to);
     });
-    var pctl = S.el('div', { class: 'pctl' }, playRow);
-    var mode = S.seg(pctl, { options: [{ v: false, t: 'Old count' }, { v: true, t: 'Corrected' }], value: false, small: true, aria: 'Which count', onChange: setMode });
-    cbtn = S.el('button', { class: 'btn ghost crankbtn', type: 'button', 'aria-busy': 'false' }, pctl, '<i aria-hidden="true"></i><span class="lg">Turn the crank</span><span class="sm">Crank</span>');
-    var spaceUp = 0;
-    cbtn.addEventListener('click', function () { if (Date.now() - spaceUp < 120) return; turnAuto(); });
-    cbtn.addEventListener('keydown', function (e) { if (e.key === ' ') { e.preventDefault(); turnAuto(); } });
-    cbtn.addEventListener('keyup', function (e) { if (e.key === ' ') { e.preventDefault(); spaceUp = Date.now(); } });
 
     function chip(c, txt) {
-      var b = c.querySelector('b'); if (b.textContent === txt) return;
+      var b = c.querySelector('b'); if (S.shown(b) === txt) return;
       if (txt === '?' || b.textContent === '?' || !b.textContent) b.textContent = txt; else S.countTo(b, txt);
       if (!S.reduce && txt !== '?') { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+    }
+    function cell(b, txt) {
+      if (S.shown(b) === txt) return;
+      b.textContent = txt;
+      if (!S.reduce && txt !== '?') { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
     }
     function show() {
       var v = vals(st8.i, st8.fixed), y = Y[st8.i], vt = vals(st8.i, st8.shownT);
@@ -775,50 +817,68 @@ SITE.register({
       cF.classList.toggle('known', st8.showF); chip(cF, st8.showF ? '' : '?');
       var out = st8.out[key()] && !(T.lob >= 0 && T.lob < 4);
       chip(cC, out ? S.m(v.catch) : '?'); cC.classList.toggle('cor', st8.fixed && out);
-      phead.innerHTML = '<span class="yr">' + y + ' total catch</span><span><span class="sw o"></span>old count <b>' + S.m(v.catchOld) + '</b></span><span><span class="sw c"></span>corrected <b>' + S.m(v.catchNew) + '</b></span>';
-      mode.set(st8.fixed);
-      if (st8.i >= P0) pick.set(st8.i - P0);
+      // the stub: the year in the machine, both counts; a total shows once its card is out of the machine
+      var w = vals(st8.i, true), outO = st8.out.old && !(st8.play && T.lob >= 0 && T.lob < 2), outC = st8.out.fixed && !(T.lob >= 0 && T.lob < 4);
+      stub.querySelector('.eqyr b').textContent = y;
+      cell(rO.querySelector('b.t'), S.m(w.tripsOld)); cell(rO.querySelector('b.c'), outO ? S.m(w.catchOld) : '?');
+      cell(rC.querySelector('b.t'), S.m(D.trips.fixed[st8.i])); cell(rC.querySelector('b.c'), outC ? S.m(w.catchNew) : '?');
+      knobKey.setAttribute('aria-valuenow', y);
+      knobKey.setAttribute('aria-valuetext', y + ': total catch, old count ' + (outO ? S.m(w.catchOld) : 'not out yet') + ', corrected ' + (outC ? S.m(w.catchNew) : 'not out yet'));
     }
 
     /* ---------------- the close ---------------- */
-    api.take('Only one of the two numbers was wrong. The mail survey counted too many trips. The dock interviews were fine, so the extra trips flowed straight into the total catch.');
+    api.take('Only one of the two numbers was corrected. The mail survey counted too many trips. The ramp survey wasn’t changed, so the extra trips flowed straight into the total catch.');
     api.more('Why the corrected catch isn’t simply trips × one number',
-      '<p>NOAA doesn’t multiply one trip total by one fish-per-trip number. It does the multiplication separately for each state, each two-month stretch of the year and each kind of fishing (from shore or from a private boat), then adds up the pieces. The fish per trip in every piece comes from the same dock interviews in both counts.</p>' +
-      '<p>The correction cut some pieces more than others, so the total catch doesn’t fall by exactly the same share as the trips. In 2025 trips fell 17% and the total catch fell 21%.</p>' +
-      '<p>Charter boats and commercial fishing are counted other ways, and neither changed in this revision. Source: NOAA MRIP revision, Aug 28, 2026, as presented by ASGA.</p>');
+      '<p>NOAA doesn’t multiply one trip total by one fish-per-trip number. It does the multiplication separately for each state, each two-month stretch of the year and each kind of fishing (from shore or from a private boat), then adds up the pieces. The fish per trip in every piece comes from the same ramp survey in both counts.</p>' +
+      '<p>The correction cut some pieces more than others, so the total catch doesn’t fall by exactly the same share as the trips. In 2025 the corrected count has ' + Math.round(100 * f25.trips / v25.trips) + ' trips for every 100 in the old one, but only ' + Math.round(100 * f25.catch / v25.catch) + ' fish caught for every 100.</p>' +
+      '<p>Charter boats and commercial fishing are counted other ways, and neither changed in this revision. Both counts are survey estimates with a margin of error.</p>' +
+      '<p class="src">Source: ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' corrected estimates, posted Aug 31, 2026, as presented by ASGA on Sept 22, 2026.</p>');
 
     /* ---------------- dragging the crank ---------------- */
-    var dragA = null;
+    // a drag turns it; a tap (barely any turn, quickly) gives one whole turn
+    var dragA = null, drag0 = null;
     function angleAt(pt) { var c = orbit(lay(stage)); return Math.atan2(pt.x - c[0], -(pt.y - c[1])) * 180 / Math.PI; }
     stage.drag({
       start: function (name, pt) {
         if (name !== 'knob' || !st8.play) return false;
-        dragA = angleAt(pt); st8.tried = true; st8.dragging = true; st8.auto = 0;
-        if (st8.sPose !== 'crank') { st8.sPose = 'crank'; stage.render(); }
+        dragA = angleAt(pt); drag0 = { t: performance.now(), acc: 0 };
+        st8.tried = true; st8.dragging = true; st8.byReader = true; st8.auto = 0;
+        if (st8.sPose !== 'crank') st8.sPose = 'crank';
+        stage.render();
       },
       move: function (name, pt) {
         if (dragA == null) return;
         var a = angleAt(pt), d = a - dragA;
         if (d > 180) d -= 360; if (d < -180) d += 360;
-        dragA = a;
+        dragA = a; drag0.acc += Math.abs(d);
         var changed = crankBy(d);
         if (changed && !raf) { if (crankAngle() % 30 === 0) stage.drawing++; stage.render(); }
       },
-      end: function () { dragA = null; st8.dragging = false; if (st8.sPose === 'crank' && T.lob < 0) st8.sPose = 'ready'; if (!raf) stage.render(); }
+      end: function () {
+        var tap = drag0 && drag0.acc < 25 && performance.now() - drag0.t < 600;
+        dragA = null; drag0 = null; st8.dragging = false;
+        if (tap) { turnAuto(); return; }
+        if (st8.sPose === 'crank' && T.lob < 0 && st8.auto <= 0) st8.sPose = 'ready';
+        if (!raf) stage.render();
+      }
     });
 
     /* ---------------- life between moves: blinks and the householder thinking, only while in view ---------------- */
     var inView = true;
     if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { inView = es[0].isIntersecting; }, { threshold: 0.2 }).observe(api.stageHost);
-    var idleN = 0;
+    var idleN = 0, idler = null;
     if (!S.reduce) setInterval(function () {
       if (!inView || raf || st8.dragging || document.hidden) return;
+      if (idler && performance.now() - idler.act > 20000) return;      // rests with the heartbeat after 20 s of quiet
       idleN++;
       st8.blinkWho = idleN % 5; T.blink = 0;
       if (idleN % 3 === 0) T.hh = 0;
       if (idleN % 4 === 2 && T.tap < 0 && st8.showF) T.tap = 6;
       run();
     }, 2300);
+
+    // the idle heartbeat (SITE.idle): the boil, the hint's bob, the boats and the eyes keep going between blinks
+    idler = S.idle(api.stageHost, function () { stage.drawing++; stage.render(); }, function () { return !!raf || st8.dragging; });
 
     snap(0);
     document.addEventListener('site:fonts', function () { stage.render(); });

@@ -23,18 +23,19 @@ SITE.register({
     var HOP = [0.16, 0.5, 0.84];            // a hop: three drawings in the air, then the landing drawing
     var DRIFT = 20;                         // the fuzzy edge's width in days: a picture, not a measurement
     var EX = { home: 55, inside: 64 };      // the example trip: the last weekend of February, remembered as March 5
-    function per100(w) { return Math.round(100 + WV[w].fix); }     // new-form trips for every 100 on the old form
+    function per100(w) { return Math.round(100 + WV[w].fix); }     // corrected striper trips for every 100 in the old count
     // split: 0 the old form's frame only; 1 March's window open; 2 both windows. pair: the new form is on the desk.
     var st8 = { w: 1, split: 0, pair: false, known: {}, drift: false, ex: 'none', test: false, focus: null, hl: null, play: false, say: false,
       drag: null, dx: 0, dragged: false, settleFrom: 0 };
     var T = { clock: 100, raf: 0, last: 0, until: 0 }, cues = [];
     // moments, as the clock drawing they start on
-    var A = { snap: -99, slide: -99, slideFrom: null, ex: -99, exDir: '', oops: -99, mail: -99, stamp: -99, stampW: -1, v: -99, fz: -99, say: -99, pair: -99, win1: -99, win2: -99, settle: -99 };
+    var A = { snap: -99, slide: -99, slideFrom: null, ex: -99, exDir: '', oops: -99, mail: -99, stamp: -99, stampW: -1, v: -99, fz: -99, say: -99, pair: -99, win1: -99, win2: -99, settle: -99, thump: -99 };
     var V = { from: 0, to: 0 };             // the new form's count in tokens (10 = the old form's 100)
 
     /* ---------------- layout: laptop 1920 x 1080..1320, phone 1080 x 1250 ---------------- */
     function lay(st) {
       var port = st.port, W = st.w, H = st.h, L = { port: port, W: W, H: H, ex: H - (port ? 1250 : 1080) };
+      if (port && st8.pair) return camLay(L);
       if (port) { L.x0 = 20; L.x1 = 1060; L.gi = 8; L.gp = 28; L.top = 14; L.band = H - 540; L.cols = 2; L.mon = 46; L.tab = 44; }
       else {
         // a taller laptop stage gives about half its extra height to the desk band, so the cast grows with it
@@ -69,11 +70,33 @@ SITE.register({
       L.fm.y = L.dk.yf - 14 - L.fm.h * L.fm.s;
       return L;
     }
+    /* the phone camera from step 3 on (director 9): the year's calendar pages shrink to one strip of twelve along
+       the top, and the two forms fill the stage width below it, so the counts on their coins read at about 24 px */
+    function camLay(L) {
+      var H = L.H;
+      L.cam = true; L.x0 = 22; L.x1 = 1058; L.gi = 4; L.gp = 24; L.fpad = 10; L.top = 8; L.cols = 2; L.mon = 34; L.tab = 30;
+      L.tabH = 66; L.rail = 10; L.hang = 8; L.rowGap = 0; L.r = 30;
+      L.pw = (L.x1 - L.x0 - 6 * L.gi - 5 * L.gp) / 12; L.ph = 200; L.hd = Math.min(86, L.ph * 0.26);
+      L.px = []; var x = L.x0;
+      for (var c = 0; c < 12; c++) { if (c) x += L.pw + (c % 2 ? L.gi : L.gp); L.px.push(x); }
+      var ry = L.top, pt = ry + L.tabH + L.rail + L.hang, R = { railY: ry + L.tabH, pt: pt, pb: pt + L.ph, gt: pt + 8 + L.hd + 8 };
+      L.rows = [R, R]; L.band = R.pb + 20;
+      L.dayX = function (mi, day) { return L.px[mi] + 6 + (day - MS[mi]) / ML[mi] * (L.pw - 12); };
+      L.kit = [100, H - 6, 0.56]; L.hou = [236, H - 80, 0.5]; L.str = [990, H - 2, 0.56];
+      L.dk = { x0: 12, x1: 1068, yf: 824, g: H - 20 };
+      L.fm = { w: 500, s: 1, rows: 2, oldX: 282, newX: 798, soloX: 540, ts: 42, hs: 36, R: 27, br: 78 };
+      L.oops = [880, L.band + 110]; L.lamp = null;
+      var G = geo(L.fm); L.fm.h = G.h;
+      L.fm.y = L.dk.yf - 14 - L.fm.h * L.fm.s;
+      return L;
+    }
+    function pxm(L, mi) { return L.cam ? L.px[mi] : L.px[mi % 6]; }
     function fbox(L, w) {
-      var r = Math.floor(w / 3), c0 = (w % 3) * 2, R = L.rows[r];
-      return { r: r, c0: c0, x0: L.px[c0] - 14, x1: L.px[c0 + 1] + L.pw + 14, y0: R.pt - 12, y1: R.pb + 12, mid: (L.px[c0] + L.pw + L.px[c0 + 1]) / 2 };
+      var r = L.cam ? 0 : Math.floor(w / 3), c0 = L.cam ? w * 2 : (w % 3) * 2, R = L.rows[r], pad = L.fpad || 14;
+      return { r: r, c0: c0, x0: L.px[c0] - pad, x1: L.px[c0 + 1] + L.pw + pad, y0: R.pt - 12, y1: R.pb + 12, mid: (L.px[c0] + L.pw + L.px[c0 + 1]) / 2 };
     }
     function waveAt(L, x, y) {
+      if (L.cam) { var bw = 0, bdd = 1e9; for (var w = 0; w < 6; w++) { var bb = fbox(L, w), dd = Math.abs(x - (bb.x0 + bb.x1) / 2); if (dd < bdd) { bdd = dd; bw = w; } } return bw; }
       var r = y < (L.rows[0].pb + L.rows[1].railY - L.tabH) / 2 ? 0 : 1, best = 0, bd = 1e9;
       for (var p = 0; p < 3; p++) { var b = fbox(L, r * 3 + p), d = Math.abs(x - (b.x0 + b.x1) / 2); if (d < bd) { bd = d; best = p; } }
       return r * 3 + best;
@@ -88,8 +111,8 @@ SITE.register({
         for (var mi = 0; mi < 12; mi++) {
           var lo = Math.max(pr[0], MS[mi]), hi = Math.min(pr[1], MS[mi] + ML[mi]);
           if (hi > lo) {
-            var r = Math.floor(mi / 6), g = segs[r] || (segs[r] = { r: r, x0: 1e9, x1: -1e9 });
-            g.x0 = Math.min(g.x0, L.dayX(mi, lo)); g.x1 = Math.max(g.x1, hi >= MS[mi] + ML[mi] ? L.px[mi % 6] + L.pw : L.dayX(mi, hi));
+            var r = L.cam ? 0 : Math.floor(mi / 6), g = segs[r] || (segs[r] = { r: r, x0: 1e9, x1: -1e9 });
+            g.x0 = Math.min(g.x0, L.dayX(mi, lo)); g.x1 = Math.max(g.x1, hi >= MS[mi] + ML[mi] ? pxm(L, mi) + L.pw : L.dayX(mi, hi));
           }
         }
       });
@@ -179,11 +202,12 @@ SITE.register({
           s += K.calendarTabs({ x: cx, y: R.railY + 2, w: b.x1 - b.x0 - 6, tabs: [INV[w]], active: w === st8.w ? INV[w] : '' });
           letters += K.text(TABS[w], cx, R.railY - 21, { size: L.tab });
         }
+        if (L.cam && r) continue;
         s += '<rect x="' + N(L.x0 - 24) + '" y="' + N(R.railY) + '" width="' + N(L.x1 - L.x0 + 48) + '" height="' + L.rail + '" rx="5" fill="' + C.brown + '" stroke="' + INK + '" stroke-width="5"/>' +
           path('M' + N(L.x0 - 18) + ',' + N(R.railY + 3) + ' H' + N(L.x1 + 18), 'none', 3, '', S.HI.brown);
       }
       for (var mi = 0; mi < 12; mi++) {
-        var R2 = L.rows[Math.floor(mi / 6)], px = L.px[mi % 6] + L.pw / 2, q = L.pw / 4;
+        var R2 = L.rows[Math.floor(mi / 6)], px = pxm(L, mi) + L.pw / 2, q = L.pw / 4;
         strings += path('M' + N(px - q) + ',' + N(R2.railY + L.rail) + ' V' + N(R2.pt + 8) + ' M' + N(px + q) + ',' + N(R2.railY + L.rail) + ' V' + N(R2.pt + 8), 'none', 4);
         pages += K.calendar({ x: px, y: R2.pt, w: L.pw, h: L.ph, rows: 5 });
         letters += K.text(MON[mi], px, R2.pt + 8 + L.hd / 2 + K.fs('label', L.mon) * 0.36, { size: L.mon, fill: C.cream });
@@ -204,7 +228,7 @@ SITE.register({
       // the example trip: at home on the last weekend of February, or remembered as early March
       var fly = '';
       if (st8.ex !== 'none') {
-        var TR = L.port ? 34 : 38, ch = function (x, y, m, sq, bk) { return chip(x, y, m, sq, bk, TR); };
+        var TR = L.cam ? 17 : L.port ? 34 : 38, ch = function (x, y, m, sq, bk) { return chip(x, y, m, sq, bk, TR); };
         var R0 = L.rows[0], yy = R0.pb - 12 - TR, home = { x: L.dayX(1, EX.home), y: yy }, ins = { x: L.dayX(2, EX.inside), y: yy }, ea = age('ex');
         var back = zs.length ? ZONE : C.paper;
         if (st8.ex === 'in') {
@@ -226,7 +250,7 @@ SITE.register({
       fr += ring(x0, y0, x1, y1, 16, C.mustard, 16);
       [0, 1].forEach(function (i) {
         if (st8.split <= i) return;
-        var px = L.px[F.b.c0 + i] + F.ox, wx0 = px - 4, wx1 = px + L.pw + 4, wy0 = F.y0 + 10, wy1 = F.y1 - 10, pa = age(i ? 'win2' : 'win1'), k = pa >= 0 && pa < 6 ? S.pop(pa, 5) : 1;
+        var px = L.px[F.b.c0 + i] + F.ox, wx0 = px - (L.cam ? 3 : 4), wx1 = px + L.pw + (L.cam ? 3 : 4), wy0 = F.y0 + 10, wy1 = F.y1 - 10, pa = age(i ? 'win2' : 'win1'), k = pa >= 0 && pa < 6 ? S.pop(pa, 5) : 1;
         var cx = (wx0 + wx1) / 2, cy = (wy0 + wy1) / 2;
         fr += '<g transform="translate(' + N(cx) + ' ' + N(cy) + ') scale(' + k + ') translate(' + N(-cx) + ' ' + N(-cy) + ')">' + ring(wx0, wy0, wx1, wy1, 10, C.sea, 10, false) + '</g>';
       });
@@ -239,14 +263,15 @@ SITE.register({
       // SPRING RUN / FALL RUN, stamped on the wall when the new form's count for a striper run shows
       var ds = age('stamp');
       if (st8.known[st8.w] && RUN[st8.w] && A.stampW === st8.w && ds >= 0 && !F.moving) {
-        var sx = F.mid, sy = (y0 + y1) / 2 + 30, lab = RUN[st8.w], ss = L.port ? 1.05 : 1.15;
+        var sx = F.mid, sy = (y0 + y1) / 2 + (L.cam ? 18 : 30), lab = RUN[st8.w], ss = L.cam ? 0.66 : L.port ? 1.05 : 1.15;
         if (ds >= 1) s += K.stampMark({ x: sx, y: sy, label: lab, color: C.brick, size: 54 * ss, rot: -8 });
         if (ds === 1) s += K.impact({ x: sx + 200 * ss, y: sy - 50, r: 40, fill: C.white, n: 7 });
         if (ds < 3) s += K.stamp({ x: sx, y: sy + 40 - [190, 0, 100][ds], scale: 0.95 * ss, label: lab, color: C.brick, squash: ds === 1 ? 0.2 : 0 });
         if (ds >= 2 && ds < 6) s += K.sparkle({ x: sx + 220 * ss, y: sy - 70, r: 30 });
       }
       // January and February: almost no one fishes for stripers
-      if (st8.play && st8.w === 0 && !F.moving) s += K.tag('FEW STRIPER TRIPS', N(F.mid), N(y1 - (L.port ? 60 : 50)), { size: L.port ? 40 : 34, fill: C.white, rot: -2 });
+      if (st8.play && st8.w === 0 && !F.moving) s += L.cam ? K.tag('FEW STRIPER TRIPS', N(S.clamp(F.mid, 150, L.W - 150)), N(y1 + 26), { size: 26, fill: C.white, rot: -2 })
+        : K.tag('FEW STRIPER TRIPS', N(F.mid), N(y1 - (L.port ? 60 : 50)), { size: L.port ? 40 : 34, fill: C.white, rot: -2 });
       // MEMORY DRIFT, lettered above the pink zone and kept inside the stage
       if (zs.length) {
         var g = zs.reduce(function (p, q) { return (q.x1 - q.x0) > (p.x1 - p.x0) ? q : p; }), gx1 = Math.min(g.x1, L.x1), tw = L.port ? 204 : 12 * 36 * 0.55 + 40;
@@ -257,9 +282,10 @@ SITE.register({
       // the reader's turn: the drag hint until the frame has been moved, and a grab area on every pair of months
       if (st8.play) {
         if (!st8.dragged) {
-          var hy = L.rows[F.b.r].gt + (L.port ? 32 : 26), hx = (x0 + x1) / 2 + (L.port ? 0 : 20), ay = L.rows[F.b.r].pt + 8 + L.hd / 2;
-          s += K.tag(L.port ? 'DRAG ME' : 'DRAG THE FRAME', N(hx), N(hy), { size: L.port ? 44 : 36, fill: C.mustard, rot: 2 });
-          [[x0 - 8, -1], [x1 + 8, 1]].forEach(function (e) {
+          var hy = L.cam ? y1 + 28 : L.rows[F.b.r].gt + (L.port ? 32 : 26), hx = L.cam ? S.clamp((x0 + x1) / 2, 130, L.W - 130) : (x0 + x1) / 2 + (L.port ? 0 : 20), ay = L.rows[F.b.r].pt + 8 + L.hd / 2;
+          s += K.tag(L.port ? 'DRAG ME' : 'DRAG THE FRAME', N(hx), N(hy), { size: L.cam ? 32 : L.port ? 44 : 36, fill: C.mustard, rot: 2 });
+          var bob = (stage.drawing >> 1) % 2 ? 6 : 0;
+          [[x0 - 8 - bob, -1], [x1 + 8 + bob, 1]].forEach(function (e) {
             s += '<path d="M' + N(e[0]) + ',' + N(ay - 20) + ' l' + (e[1] * 22) + ',20 l' + (-e[1] * 22) + ',20 Z" fill="' + C.brick + '" stroke="' + INK + '" stroke-width="4" stroke-linejoin="round"/>';
           });
         }
@@ -274,7 +300,7 @@ SITE.register({
     /* ---------------- the desk: the two forms and the cast ---------------- */
     function vNow() { var p = S.clamp(age('v') / 6, 0, 1); return V.from + (V.to - V.from) * S.ease.inOut(p); }
     function vTarget() { return st8.known[st8.w] ? (100 + WV[st8.w].fix) / 10 : 0; }
-    function retarget(delay) { V.from = vNow(); V.to = vTarget(); A.v = T.clock + 1 + (delay || 0); }
+    function retarget(delay) { V.from = vNow(); V.to = vTarget(); A.v = T.clock + 1 + (delay || 0); if (V.to > 0 && Math.abs(V.to - V.from) > 0.01) A.thump = A.v + 6; }
     /* one form: a header band (OLD FORM / NEW FORM), its question, ten tokens and the count in a badge */
     function formArt(L, f, isNew) {
       var F = L.fm, sc = F.s, w = F.w, h = F.h, wv = st8.w, M1 = MON[wv * 2], M2 = MON[wv * 2 + 1], s = '';
@@ -284,7 +310,7 @@ SITE.register({
         '<rect x="' + (-w / 2 + 6) + '" y="' + (h - 28) + '" width="' + (w - 12) + '" height="22" rx="4" fill="' + S.HALF.paper + '"/>' +
         '<path d="M' + (-w / 2 + 3) + ',' + hb + ' V11 Q' + (-w / 2 + 3) + ',3 ' + (-w / 2 + 11) + ',3 H' + (w / 2 - 11) + ' Q' + (w / 2 - 3) + ',3 ' + (w / 2 - 3) + ',11 V' + hb + ' Z" fill="' + col + '"/>' +
         path('M' + (-w / 2) + ',' + hb + ' H' + (w / 2), 'none', 5);
-      s += S.cel(paper) + K.text(isNew ? 'NEW FORM: ONE MONTH' : 'OLD FORM: TWO MONTHS', 0, hb / 2 + F.hs * 0.34, { size: F.hs, fill: C.cream });
+      s += S.cel(paper) + K.text(isNew ? (known ? 'CORRECTED: ONE MONTH' : 'NEW FORM: ONE MONTH') : 'OLD FORM: TWO MONTHS', 0, hb / 2 + F.hs * 0.34, { size: F.hs, fill: C.cream });
       // one token is 10 trips; the trips a form doesn't count stay gray ghosts
       var G = geo(F), R = G.R, step = G.step;
       function token(x, y, fill, id) {
@@ -305,8 +331,8 @@ SITE.register({
           s += token(-w / 2 + 24 + R + c * step + (c >= 5 ? G.gap : 0), G.ty0 + r * (step + 2), S.clamp(v - i, 0, 1), 'o' + i);
         }
       } else {
-        // the new form: one row per month. The test reported the two months together, so the picture
-        // splits the new form's trips evenly between them (the more says so)
+        // the new form: one row per month. The corrected estimates come in two-month periods, so the
+        // picture splits each period's trips evenly between its two months (the more says so)
         s += K.text('TRIPS IN...', -w / 2 + 24, lineY(F, F.rows === 2 ? 1 : 0), { size: F.ts, font: 'hand', anchor: 'start' });
         [M1, M2].forEach(function (m, i) {
           var y = rowY(F, i), lw = F.rows === 2 ? 88 : 82, hl = (st8.hl === 'a' && i === 0) || (st8.hl === 'b' && i === 1);
@@ -318,9 +344,12 @@ SITE.register({
       // the total for the two months, in a badge on the corner
       var br = F.br, bx = w / 2 - 14 - br, by = G.by, num = known ? String(Math.round(v * 10)) : '?';
       s += K.text(isNew ? M1 + ' + ' + M2 + ' =' : TABS[wv] + ' =', bx - br - 12, by + F.hs * 0.36, { size: F.hs * 1.1, anchor: 'end' });
-      s += '<circle cx="' + N(bx + 4) + '" cy="' + N(by + 6) + '" r="' + br + '" fill="' + INK + '" opacity=".15"/>' +
+      var ta = isNew ? age('thump') : -1, th = ta >= 0 && ta < 4 ? [1.35, 0.9, 1.06, 1][ta] : 1;
+      var coin = '<circle cx="' + N(bx + 4) + '" cy="' + N(by + 6) + '" r="' + br + '" fill="' + INK + '" opacity=".15"/>' +
         '<circle cx="' + N(bx) + '" cy="' + N(by) + '" r="' + br + '" fill="' + (isNew ? C.sea : C.mustard) + '" stroke="' + INK + '" stroke-width="6"/>' +
         K.text(num, bx, by + K.fs('label', br * 1.05) * 0.36, { size: br * (num.length > 2 ? 0.9 : 1.05), fill: isNew ? C.cream : INK });
+      s += th !== 1 ? '<g transform="translate(' + N(bx) + ' ' + N(by) + ') scale(' + th + ') translate(' + N(-bx) + ' ' + N(-by) + ')">' + coin + '</g>' : coin;
+      if (ta >= 0 && ta < 6) s += K.sparkle({ x: bx + br * 0.95, y: by - br * 0.95, r: 30 }) + K.sparkle({ x: bx - br * 1.05, y: by - br * 0.7, r: 20 });
       var k = isNew && f.pop != null ? f.pop : 1;
       return '<g transform="translate(' + N(f.x) + ' ' + N(f.y + (1 - k) * 60) + ') rotate(' + (isNew ? 1.2 : -1.2) + ') scale(' + N(sc * k * 1000) / 1000 + ')">' + s + '</g>';
     }
@@ -333,6 +362,7 @@ SITE.register({
       else { so.pose = 'neutral'; so.expr = 'hopeful'; so.look = 'upFwd'; }
       var talk = st8.say && age('say') >= 0 && age('say') < 16;
       if (talk) { so.mouth = age('say') % 3 === 2 ? 'closed' : 'open'; so.blink = false; }
+      else { so.squash = S.breath(stage); if (st8.play) { var slk = S.lookAt(stage, K.striperPoints(so).eye, so.flip); if (slk) so.look = slk; } }
       var striper = S.shadow(sx[0], sx[1], 210 * sx[2] / 0.85) + K.striper(so);
       // the desk (props get cel shade and a contact shadow)
       var yb = D.yf - (port ? 44 : 50), ins = 34, ap = 34, dk = '';
@@ -345,7 +375,7 @@ SITE.register({
       s += S.shadow((D.x0 + D.x1) / 2, D.g - 2, D.x1 - D.x0 + 60) + S.cel(dk);
       s += formArt(L, fm.old, false);
       if (fm.neu) s += formArt(L, fm.neu, true);
-      if (port) s += lampShade(L.lamp[0], L.lamp[1]);
+      if (port && L.lamp) s += lampShade(L.lamp[0], L.lamp[1]);
       var exIn = A.exDir === 'in' && age('ex') >= -1 && age('ex') < 6;
 
       // the mail-survey man: the letter arrives, he reads the form, and thinks while a trip slides in
@@ -360,14 +390,18 @@ SITE.register({
       var ds = age('stamp');
       if (A.stampW === st8.w && ds >= 2 && ds < 20) { ko.pose = 'cheer'; ko.expr = 'grin'; }
       else if (exIn) { ko.pose = 'cheeks'; ko.expr = 'wide'; }
-      else { ko.pose = 'point'; ko.aim = aim; ko.expr = known ? 'grin' : st8.drift ? 'worried' : 'eager'; }
+      else {
+        ko.pose = 'point'; ko.aim = aim; ko.expr = known ? 'grin' : st8.drift ? 'worried' : 'eager';
+        var klk = st8.play && S.lookAt(stage, K.kidPoints(ko).eye, ko.flip); if (klk) ko.look = klk;
+      }
       s += S.shadow(kx[0], kx[1], 200 * kx[2] / 0.75) + K.kid(ko);
       s += striper;
       // OOPS pops when the trip lands inside the old form's two months
       if (st8.ex === 'in' && A.oops > 0 && age('oops') >= 0 && age('oops') < 40) s += K.at(L.oops[0], L.oops[1], S.pop(age('oops'), 4), -7, K.tag('OOPS', 0, 0, { size: port ? 56 : 60, fill: C.white }));
       if (st8.say) {
         var np = K.striperPoints({ x: sx[0], y: sx[1], scale: sx[2], flip: true, pose: so.pose }).nose;
-        s += port ? S.say('Now add that up since the 1980s.', 900, L.band + 40, 300, np[0] - 10, np[1] - 40, { size: 38 })
+        s += L.cam ? S.say('Now add that up since the 1980s.', 700, 930, 330, np[0] - 10, np[1] - 40, { size: 38 })
+          : port ? S.say('Now add that up since the 1980s.', 900, L.band + 40, 300, np[0] - 10, np[1] - 40, { size: 38 })
           : S.say('Now add that up since the 1980s.', 1776, np[1] - 290, 290, np[0] - 10, np[1] - 60, { size: 38 });
       }
       return s;
@@ -388,10 +422,8 @@ SITE.register({
     }
     function spotlight(L) {
       var rs = focusRects(L); if (!rs) return '';
-      var fz = age('fz'), op = fz >= 0 && fz < 3 ? [0.14, 0.28, 0.38][fz] : 0.42, W = L.W + 40, H = L.H + 40;
-      return '<mask id="calSpot" maskUnits="userSpaceOnUse" x="-20" y="-20" width="' + W + '" height="' + H + '"><rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="#fff"/>' +
-        rs.map(function (r) { return '<rect x="' + N(r[0]) + '" y="' + N(r[1]) + '" width="' + N(r[2]) + '" height="' + N(r[3]) + '" rx="26" fill="#000"/>'; }).join('') + '</mask>' +
-        '<rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="' + INK + '" opacity="' + op + '" mask="url(#calSpot)"/>';
+      var fz = age('fz');
+      return S.spot(L.W, L.H, rs, fz >= 0 && fz < 3 ? [0.33, 0.67, 0.9][fz] : 1, 26);
     }
 
     var stage = api.stage(function (st) {
@@ -401,23 +433,38 @@ SITE.register({
         '<rect x="-900" y="' + FL + '" width="' + (L.W + 1800) + '" height="' + (L.H - FL + 20) + '" fill="' + C.tan + '"/>' +
         path('M-900,' + (FL - 64) + ' H' + (L.W + 900), 'none', 4, '', C.brown) + path('M-900,' + FL + ' H' + (L.W + 900), 'none', 7) + set.svg;
       if (st8.drag == null) { var sa = age('settle'); st8.dx = sa >= 0 && sa < 3 ? st8.settleFrom * [0.35, -0.1, 0][sa] : 0; }
-      if (port) {
+      if (port && L.lamp) {
         // on the phone the calendar fills the wall, so the lamp hangs lower, over the desk's near end
         var lx = L.lamp[0], ly = L.lamp[1];
         s += '<path d="M' + (lx - 70) + ',' + ly + ' L' + (lx + 70) + ',' + ly + ' L' + (lx + 330) + ',' + N(set.floor) + ' L' + (lx - 330) + ',' + N(set.floor) + ' Z" fill="' + S.HI.mustard + '" opacity=".30"/>';
         s += path('M' + lx + ',-10 L' + lx + ',' + (ly - 60), 'none', 5);
       } else if (st8.test) {
-        s += hang(1776, 212 + L.ex * 0.3, { x: 1776, y: 300 + L.ex * 0.35, w: 262, h: 132, band: C.sea, rot: 2, lines: ['NOAA’S 2024', 'TEST'], size: 40 });
+        s += hang(1776, 212 + L.ex * 0.3, { x: 1776, y: 300 + L.ex * 0.35, w: 262, h: 132, band: C.sea, rot: 2, lines: st8.known[1] ? ['CORRECTED', '2016-2025'] : ['NOAA’S 2024', 'TEST'], size: 40 });
       }
       s += logArt(L) + bandArt(L) + spotlight(L);
       return s;
     }, label);
     function label() {
+      if (st8.play) return 'The frame on the calendar: pick two months. Left and right arrows move it.';
       var w = WV[st8.w], kn = st8.known[st8.w];
-      return 'One year of calendar pages, with a frame on ' + w.months + '. ' + (st8.pair ? 'The old two-month form and the new one-month form lie side by side on the desk. ' : 'The old two-month form lies on the desk. ') +
-        (kn ? 'For every 100 trips the old form counted for these two months, the new form counted ' + per100(st8.w) + '.' : 'The old form counts 100.');
+      return 'One year of calendar pages, with a frame on ' + w.months + '. ' + (st8.pair ? 'The old two-month form and the one-month form sit side by side on the desk. ' : 'The old two-month form rests on the desk. ') +
+        (kn ? 'For every 100 striper trips in the old count for these two months, the corrected count has ' + per100(st8.w) + '.' : 'The old count is 100.');
     }
     var live = S.el('p', { class: 'sr', 'aria-live': 'polite' }, api.bar);
+    function keyable() {
+      var sv = stage.svg;
+      if (st8.play) {
+        sv.setAttribute('role', 'slider'); sv.setAttribute('tabindex', '0');
+        sv.setAttribute('aria-valuemin', '1'); sv.setAttribute('aria-valuemax', '6'); sv.setAttribute('aria-valuenow', String(st8.w + 1));
+        sv.setAttribute('aria-valuetext', WV[st8.w].months + ': for every 100 trips on the old form, the new form counted ' + per100(st8.w));
+      } else { sv.setAttribute('role', 'img'); sv.removeAttribute('tabindex'); ['aria-valuemin', 'aria-valuemax', 'aria-valuenow', 'aria-valuetext'].forEach(function (a) { sv.removeAttribute(a); }); }
+    }
+    stage.svg.addEventListener('keydown', function (e) {
+      if (!st8.play) return;
+      var k = e.key, w = st8.w, to = k === 'ArrowLeft' || k === 'ArrowDown' ? w - 1 : k === 'ArrowRight' || k === 'ArrowUp' ? w + 1 : k === 'Home' ? 0 : k === 'End' ? 5 : null;
+      if (to == null) return;
+      e.preventDefault(); st8.dragged = true; setWave(S.clamp(to, 0, 5)); keyable();
+    });
 
     /* ---------------- the clock: every moment runs on twos, 12 drawings a second; cues fire on their drawing ---------------- */
     function cue(at, fn) { cues.push({ at: at, fn: fn }); cues.sort(function (a, b) { return a.at - b.at; }); }
@@ -440,25 +487,25 @@ SITE.register({
       else { A.slide = -99; A.snap = T.clock + 1; }
       if (st8.known[w] && RUN[w]) { A.stampW = w; A.stamp = T.clock + (dragging ? 8 : 12); } else A.stampW = -1;
       retarget(dragging ? 0 : 4);
-      live.textContent = label();
+      live.textContent = st8.play ? WV[w].months + ': the old form counted 100, the new form ' + per100(w) + '.' : label();
+      keyable();
       want(24);
     }
 
     /* ---------------- the walkthrough ---------------- */
     var STEPS = [
-      { focus: 'frame', cls: 'first', h: '<p>For decades, NOAA’s mail survey asked households about <b>two months at a time</b>: how many saltwater fishing trips did you take in March and April?</p>' },
+      { focus: 'frame', cls: 'first', h: '<p>NOAA’s mail survey asked a sample of households about <b>two months at a time</b>: how many saltwater fishing trips did you take in March and April?</p>' },
       { focus: 'drift', h: '<p><b>Two months is a lot to remember.</b> A trip on the last weekend of February can easily get counted as early March. Survey researchers call this telescoping, and it makes a count come out too high.</p>' },
       { focus: 'frame', h: '<p><b>In 2024, NOAA tested a new form</b> side by side with the old one in 17 states. The new form asks about <b>one month at a time</b>: first trips in March, then trips in April.</p>' },
-      { focus: 'frame', h: '<p><b>Asking one month at a time counted far fewer trips.</b> For every 100 trips people reported for March and April on the old form, they reported <b class="num">' + per100(1) + '</b> on the new form, March and April added together.</p>' },
-      { focus: null, h: '<p><b>Summer barely moved.</b> For July and August, the new form counted <b class="num">' + per100(3) + '</b> for every 100 on the old form.</p>' +
-        '<p>The big drops came in spring and late fall, the striper runs, which hold more than a third of the year’s striper fishing.</p>' },
-      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>Slide the frame to any two months, or press them. The desk shows what each form counted for those months, with the old form set at 100.</p>' }
+      { focus: 'frame', h: '<p><b>Asking one month at a time counted far fewer trips</b>, and NOAA corrected its numbers. For every 100 striper trips the old count had in March and April, the corrected count has <b class="num">' + per100(1) + '</b>.</p>' },
+      { focus: null, h: '<p><b>Summer barely moved:</b> <b class="num">' + per100(3) + '</b> trips for every 100 in July and August. <b>The fall run dropped like spring:</b> <b class="num">' + per100(5) + '</b> for every 100 in November and December. The two runs held over a third of the year’s striper trips.</p>' },
+      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>Slide the frame to any two months, or press them. The desk shows the old and corrected counts for those months, with the old count set at 100.</p>' }
     ];
     var PLAY = STEPS.length - 1, OUTRO = STEPS.length;
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
 
     /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion) */
-    function snap(n) {
+    function snap(n, quiet) {
       if (T.raf) { cancelAnimationFrame(T.raf); T.raf = 0; }
       cues = [];
       Object.keys(A).forEach(function (k) { if (typeof A[k] === 'number') A[k] = -99; });
@@ -470,8 +517,8 @@ SITE.register({
       st8.dx = 0; st8.drag = null;
       if (n === 3) { A.stampW = 1; A.stamp = T.clock - 30; }
       V.from = V.to = vTarget();
-      api.playing(st8.play); live.textContent = label();
-      stage.drawing++; stage.render();
+      api.playing(st8.play); live.textContent = label(); keyable();
+      if (!quiet) { stage.drawing++; stage.render(); }
     }
     /* step n's entrance, played from the finished state of step n - 1 */
     function enter(n) {
@@ -488,40 +535,35 @@ SITE.register({
         want(52);
       }
       else if (n === 3) { st8.known[1] = true; retarget(2); A.stampW = 1; A.stamp = c + 10; want(34); }
-      else if (n === 4) { WV.forEach(function (w, i) { st8.known[i] = true; }); st8.ex = 'none'; setWave(3); }
-      else if (n === PLAY) { st8.play = true; api.playing(true); }
+      else if (n === 4) {
+        // summer first, then the frame moves on to the fall run and stamps it, like the spring run
+        WV.forEach(function (w, i) { st8.known[i] = true; }); st8.ex = 'none'; setWave(3);
+        cue(c + 36, function () { setWave(5); });
+      }
+      else if (n === PLAY) { st8.play = true; api.playing(true); keyable(); }
       live.textContent = label();
       stage.render();
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) {
         // between the last step and the closing card: keep whatever the reader set up
-        st8.say = n === OUTRO; if (st8.say) { A.say = T.clock + 1; api.gotIt(); nudge(); want(20); }
+        st8.say = n === OUTRO; if (st8.say) { A.say = T.clock + 1; S.reward(api); want(20); }
         stage.render(); return;
       }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
-      if (n === OUTRO) { A.say = T.clock + 1; api.gotIt(); nudge(); want(20); }
+      if (n === OUTRO) { A.say = T.clock + 1; S.reward(api); want(20); }
     });
-    function nudge() {
-      var b = api.nav && api.nav.querySelector('.btn');
-      if (b && !S.reduce) { b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); }
-    }
-    var css = document.createElement('style');
-    css.textContent =
-      '#calendar .navrow .btn.nudge{animation:calNudge 1.2s steps(6,end) 3}' +
-      '@keyframes calNudge{0%,100%{transform:translateY(0)}20%{transform:translateY(-6px)}40%{transform:translateY(0)}60%{transform:translateY(-3px)}}' +
-      '@media (prefers-reduced-motion: reduce){#calendar .navrow .btn.nudge{animation:none}}';
-    document.head.appendChild(css);
 
     /* ---------------- the close ---------------- */
-    api.take('The new one-month form counted fewer trips in every season, and far fewer in spring and late fall, the striper runs. NOAA used the test to correct its trip counts for every year back to the 1980s.');
-    api.more('How the test worked',
-      '<p>NOAA ran the old two-month form and a new one-month form side by side in 17 states in 2024. The numbers here compare what the two versions counted for each pair of months, scaled so the old form’s count is 100. The new form’s number is its two months added together. The test reported each pair of months as one total, so the picture splits the new form’s trips evenly between the two months.</p>' +
-      '<p>For every 100 trips on the old form, the new form counted: January and February ' + per100(0) + ', March and April ' + per100(1) + ', May and June ' + per100(2) + ', July and August ' + per100(3) + ', September and October ' + per100(4) + ', November and December ' + per100(5) + '.</p>' +
-      '<p>The test shows how much lower the one-month form came in, not why. The usual explanation is telescoping: people remember trips from just before the period as inside it, and a longer period gives memory more room to drift. The fuzzy edge in the picture illustrates that idea; it isn’t a measurement.</p>' +
-      '<p>January and February came in lowest, but they hold under 1% of the year’s striper fishing.</p>' +
-      '<p>Source: NOAA’s 2024 side-by-side test of a one-month form in 17 states, as presented by ASGA.</p>');
+    api.take('The corrected count has fewer striper trips in every season, and far fewer in spring and late fall, the striper runs. NOAA’s corrected numbers reach back to the early 1980s.');
+    api.more('The test and the corrected numbers',
+      '<p>In 2024 NOAA ran the old two-month form and a new one-month form side by side in 17 states. The new form mailed every month, asked about one month at a time and asked the questions in a different order, and it counted fewer trips. The numbers on this page come from the corrected estimates NOAA posted on August 31, 2026: striper trips from shore and private boats on the Atlantic coast, 2016 to 2025 combined, for each two-month period, with the old count set at 100. The estimates come in two-month periods, so the picture splits each period’s trips evenly between its two months.</p>' +
+      '<p>Why trust the corrected count? Both forms went out side by side, in the same 17 states in the same year, so the one thing that differed was the form. And asking about one month leaves less room for memory to drift.</p>' +
+      '<p>For every 100 striper trips in the old count, the corrected count has: January and February ' + per100(0) + ', March and April ' + per100(1) + ', May and June ' + per100(2) + ', July and August ' + per100(3) + ', September and October ' + per100(4) + ', November and December ' + per100(5) + '.</p>' +
+      '<p>The numbers show how much lower the corrected count came in, not why. The usual explanation is telescoping: people remember trips from just before the period as inside it, and a longer period gives memory more room to drift. The fuzzy edge in the picture illustrates that idea; it isn’t a measurement.</p>' +
+      '<p>January and February came in lowest, but they hold under 1 in every 100 of the year’s striper fishing trips.</p>' +
+      '<p class="src">Source: ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' corrected estimates, posted Aug 31, 2026 (striped bass trips by two-month period, shore and private boat, Atlantic coast, 2016 to 2025 combined), as compiled by ASGA. The side-by-side test: ' + FRAME.link('fes', 'NOAA’s 2024 one-month mail survey test') + ' in 17 states.</p>');
 
     /* ---------------- dragging the frame (the reader's turn) ---------------- */
     function dragTo(pt) {
@@ -543,13 +585,15 @@ SITE.register({
       end: function () {
         if (!st8.drag) return;
         st8.drag = null; st8.dragged = true; st8.settleFrom = st8.dx; A.settle = T.clock + 1; A.snap = T.clock + 1;
-        want(6);
+        S.buzz(8); want(6);
       }
     });
 
     // the opening: the letter arrives once the picture is in view
     var opened = false;
     function intro() { if (opened) return; opened = true; A.mail = T.clock + 2; want(12); }
+    // the idle heartbeat (SITE.idle): the boil, the blinks and the DRAG ME arrows keep going between moments
+    S.idle(api.stageHost, function () { T.clock++; stage.drawing++; stage.render(); }, function () { return !!T.raf || st8.drag != null; });
     snap(0);
     if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { if (es[0].isIntersecting) intro(); }, { threshold: 0.35 }).observe(api.stageHost);
     else intro();

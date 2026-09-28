@@ -32,7 +32,7 @@ SITE.register({
     var st8 = { scene: 'pond', bubble: true, struck: false, said: false, cheer: false, wedges: 0, school: false, x5: false, card: false,
       stamp: false, spoke: false, turn: false, tried: false };
     var T = { clock: 100, raf: 0, last: 0, until: 0 }, cues = [];
-    var A = { hop: -99, pop: -99, shake: -99, tw: -99, stab: -99, stamp: -99, wd: -99, say: -99 };
+    var A = { hop: -99, pop: -99, shake: -99, tw: -99, stab: -99, stamp: -99, wd: -99, say: -99, hat: -99 };
     var TW = { caught: { f: OLD, t: OLD, a: -99, l: 8 }, slice: { f: OLD, t: OLD, a: -99, l: 10 }, pieN: { f: OLD, t: OLD, a: -99, l: 10 } };
     function age(k) { return T.clock - A[k]; }
     function val(k) { var w = TW[k], p = S.clamp((T.clock - w.a) / w.l, 0, 1); return w.f + (w.t - w.f) * S.ease.inOut(p); }
@@ -133,7 +133,7 @@ SITE.register({
       var kp = st8.cheer && st8.bubble ? 'cheer' : 'think', ke = st8.cheer && st8.bubble ? 'grin' : !st8.bubble ? 'wide' : 'think';
       s += S.shadow(P.KX, P.KY, 170) + K.kid({ x: P.KX, y: P.KY, scale: P.KS, pose: kp, expr: ke, blink: (st.drawing % 40) === 0 });
       var sa = age('shake'), shaking = sa >= 0 && sa < 20;
-      s += S.shadow(P.SX, P.SY, 180) + K.striper({ x: P.SX, y: P.SY, scale: P.SS, flip: true, pose: shaking ? 'shake' : 'neutral', frame: shaking ? (sa >> 1) % 2 : 0, expr: shaking || st8.said ? 'kind' : 'neutral', mouth: shaking && sa < 14 ? (sa % 3 === 2 ? 'closed' : 'open') : false });
+      s += S.shadow(P.SX, P.SY, 180) + K.striper({ x: P.SX, y: P.SY, scale: P.SS, flip: true, pose: shaking ? 'shake' : 'neutral', frame: shaking ? (sa >> 1) % 2 : 0, expr: shaking || st8.said ? 'kind' : 'neutral', mouth: shaking && sa < 14 ? (sa % 3 === 2 ? 'closed' : 'open') : false, squash: shaking ? 0 : S.breath(st) });
       if (st8.said) s += S.say('Nobody ever counted those.', port ? 760 : P.SX - 120, port ? st.h - 450 : P.SY - 520 * P.SS - 90, port ? 440 : 470, port ? 960 : P.SX - 30, P.SY - 430 * P.SS, { size: port ? 38 : 42 });
       return s;
     }
@@ -149,9 +149,9 @@ SITE.register({
       s += S.tag({ x: sgX, y: sgY, w: port ? 900 : 1000, h: 150, band: C.brick, lines: ['STOCK ASSESSMENT:', { t: 'WORKING OUT THE SCHOOL FROM THE CATCH', size: port ? 30 : 34 }], size: port ? 48 : 54 });
       if (st8.stamp && pn < OLD - 0.5) {
         var sp = sa >= 0 && sa < 4 ? [1.9, 0.86, 1.08, 1][sa] : 1;
-        s += K.stampMark({ x: sgX + (port ? 150 : 0), y: sgY + (port ? 96 : 132), label: 'SMALLER ALL ALONG', color: C.sea, size: port ? 40 : 48, rot: -5, scale: sp });
+        s += K.stampMark({ x: sgX + (port ? 50 : 0), y: sgY + (port ? 160 : 132), label: 'SMALLER ALL ALONG', color: C.sea, size: port ? 40 : 48, rot: -5, scale: sp });
       }
-      s += port ? exampleTag(st, L, sgY + 160) : K.tag('EXAMPLE NUMBERS', 250, 70 + L.dy * 0.3, { size: 28, rot: -3, fill: C.cream });
+      s += port ? K.tag('EXAMPLE NUMBERS', 172, sgY + 124, { size: 26, rot: -3, fill: C.cream }) : K.tag('EXAMPLE NUMBERS', 250, 70 + L.dy * 0.3, { size: 28, rot: -3, fill: C.cream });
       // the School peeks over the table's far edge
       var back = L.TY - L.TOP;
       L.fish.forEach(function (fx, si) { s += K.schoolie({ x: L.TX + fx, y: back + (port ? 96 : 112), scale: port ? 0.56 : 0.66, tie: si, pose: 'peek', mouth: 'closed', blink: ((st.drawing + si * 7) % 36) === 0 }); });
@@ -173,7 +173,7 @@ SITE.register({
       // where the lifted slice sits: the pie-local mid of the 18..90 degree wedge, lifted 190
       var mid = [Math.cos(54 * RAD) * 260 * 0.45, Math.sin(54 * RAD) * 260 * 0.45 * 0.52];
       var sx = PX + mid[0] * 1.3 * PS, sy = PY + (mid[1] - 190) * PS;
-      if (st8.turn) s += S.grab('slice', '<circle cx="' + N(sx) + '" cy="' + N(sy) + '" r="' + N(140 * PS) + '" fill="transparent"/>', sx, sy, 0);
+      if (st8.turn) s += S.grab('slice', '', sx, sy, Math.round(140 * PS));
       // x 5: an arrow from the slice to the whole pie
       if (st8.x5) {
         var ax0 = sx - 120 * PS, ay0 = sy + 20 * PS, ax1 = PX - 180 * PS, ay1 = PY - 40 * PS;
@@ -199,9 +199,17 @@ SITE.register({
         var fr = ka < 4 ? 0 : 1, tn = K.kidPoints({ pose: 'stab', frame: 1, scale: KS }).tines;
         var tx = GRC[0] - GRR[0] * 0.78, ty = GRC[1] + GRR[1] * 0.35;
         s += K.kid({ x: fr ? tx - tn[0] : KX0, y: fr ? ty - tn[1] : KY, scale: KS, pose: 'stab', frame: fr, expr: 'eager' });
-      } else s += S.shadow(KX0, KY, 150) + K.kid({ x: KX0, y: KY, scale: KS, pose: 'fork', expr: pnR < 0.995 ? 'wide' : 'eager', blink: (st.drawing % 44) === 3 });
+      } else {
+        var ko = { x: KX0, y: KY, scale: KS, pose: 'fork', expr: pnR < 0.995 ? 'wide' : 'eager', blink: (st.drawing % 44) === 3 };
+        var klk = st8.turn && S.lookAt(stage, K.kidPoints(ko).eye, ko.flip); if (klk) ko.look = klk;
+        s += S.shadow(KX0, KY, 150) + K.kid(ko);
+      }
       var SX = L.SX, SY = L.SY, SS = L.SS, say = age('say'), talking = st8.spoke && say >= 0 && say < 14;
-      s += S.shadow(SX, SY, 170) + K.striper({ x: SX, y: SY, scale: SS, flip: true, pose: st8.card ? 'hold' : 'neutral', hold: st8.card ? 'card' : undefined, holdText: st8.card ? '× 5' : undefined, expr: st8.spoke ? 'wink' : 'kind', mouth: talking ? (say % 3 === 2 ? 'closed' : 'open') : false });
+      var ha = age('hat'), tip = ha >= 0 && (ha < 20 || S.reduce);
+      var so = tip ? { x: SX, y: SY, scale: SS, flip: true, pose: 'tipHat', expr: 'wink', mouth: false, blink: false }
+        : { x: SX, y: SY, scale: SS, flip: true, pose: st8.card ? 'hold' : 'neutral', hold: st8.card ? 'card' : undefined, holdText: st8.card ? '× 5' : undefined, expr: st8.spoke ? 'wink' : 'kind', mouth: talking ? (say % 3 === 2 ? 'closed' : 'open') : false };
+      if (!tip && !talking) { so.squash = S.breath(st); var slk = st8.turn && S.lookAt(stage, K.striperPoints(so).eye, so.flip); if (slk) so.look = slk; }
+      s += S.shadow(SX, SY, 170) + K.striper(so);
       if (st8.spoke) s += S.say('Sharper tool. Not extra fish.', port ? 800 : SX + 40, port ? L.TY - 330 : SY - 520, port ? 380 : 360, port ? 960 : SX + 20, SY - 400 * SS, { size: port ? 36 : 40 });
       return s;
     }
@@ -231,17 +239,17 @@ SITE.register({
       { cls: 'first', h: '<p>Here’s how most of us picture it. Somebody counted the stripers: say <b class="num">500</b>. Anglers caught <b class="num">100</b> of them, so <b class="num">400</b> are left.</p>' },
       { h: '<p>Now the recount says anglers caught <b class="num">58</b>, not 100. In this picture, that leaves <b class="num">442</b>. More fish in the water. Good news?</p>' },
       { h: '<p><b>Nobody ever counted those.</b> No one can count the stripers in the ocean. The 500 was never a count. It was worked out from the catch.</p>' },
-      { h: '<p>Here’s what scientists can measure. The <b>fish taken out</b> each year, from the surveys: 100 in this example. And the <b>fishing rate</b>, the share of the stripers that fishing kills each year, which they estimate from tagged fish and the ages of fish caught. In this example it’s <b>about 1 in 5</b>.</p>' },
+      { h: '<p>Scientists can measure two things. The <b>fish taken out</b> each year (kept, plus released fish that die): 100 here. And the <b>fishing rate</b>, the share of stripers fishing kills each year, from tags and fish ages: <b>about 1 in 5</b>.</p>' },
       { h: '<p>So they work backward. If 100 fish taken out is 1 in 5, the school is five slices of 100: <b class="num">5 × 100 = 500</b>. That’s where Kit’s 500 came from.</p>' },
-      { h: '<p>Now the recount. Across the whole record it finds about <b class="num">58</b> fish taken out for every 100 in the old count. The tags and ages didn’t change, so the rate is still <b>1 in 5</b>.</p>' },
-      { h: '<p>Work it backward again: <b class="num">5 × 58 = 290</b>. The school was never 500. There were <b>fewer stripers out there all along</b>.</p>' },
+      { h: '<p>Now the recount. Across the whole record, anglers caught about <b class="num">58</b> fish for every 100 in the old count; the other 42 were never caught. Say the fish taken out drop from 100 to 58, and the rate stays <b>1 in 5</b>.</p>' },
+      { h: '<p>Work it backward again: <b class="num">5 × 58 = 290</b>. In this example the school was never 500. There were <b>fewer stripers out there all along</b>.</p>' },
       { cls: 'turn', h: '<span class="go">Your turn</span><p>Slide the bobber under the picture to change the fish taken out. The rate stays 1 in 5, so the whole pie follows the slice.</p>' }
     ];
     var PLAY = STEPS.length - 1, OUTRO = STEPS.length;
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
 
     /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion) */
-    function snap(n) {
+    function snap(n, quiet) {
       if (T.raf) { cancelAnimationFrame(T.raf); T.raf = 0; }
       cues = []; Object.keys(A).forEach(function (k) { A[k] = -99; });
       st8.scene = n >= 3 ? 'pie' : 'pond';
@@ -253,7 +261,7 @@ SITE.register({
       st8.turn = n >= PLAY; if (n < PLAY) st8.tried = false;
       key.set(Math.round(TW.slice.t)); key.el.disabled = !st8.turn;
       api.playing(st8.turn); show();
-      stage.drawing++; stage.render();
+      if (!quiet) { stage.drawing++; stage.render(); }
     }
     /* step n's entrance, played from the finished state of step n - 1 */
     function enter(n) {
@@ -283,14 +291,11 @@ SITE.register({
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) { if (n === OUTRO) closing(); return; }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
       if (n === OUTRO) closing();
     });
-    function closing() {
-      api.gotIt();
-      var nx = api.nav && api.nav.querySelector('.btn'); if (nx && !S.reduce) { nx.classList.remove('pie-nudge'); void nx.offsetWidth; nx.classList.add('pie-nudge'); }
-    }
+    function closing() { S.reward(api); }
 
     /* ---------------- the equation under the picture: the wrong math, then the real one ---------------- */
     var css = document.createElement('style');
@@ -308,23 +313,21 @@ SITE.register({
       '#pie .op{align-self:center;font:400 clamp(30px,2.8vw,46px)/1 var(--f-title)}' +
       '#pie .sc-play{justify-content:center}#pie .sc-play .ctl{flex:1;max-width:760px}#pie .sc-play .rod{margin-top:20px}#pie .ticks span:last-child{transform:translateX(-88%)}' +
       '#pie .eqlab{align-self:center;font:400 clamp(14px,1.05vw,17px)/1.15 var(--f-label);color:var(--brick);max-width:9em;text-align:right}' +
-      '#pie .navrow .btn.pie-nudge{animation:pieNudge 1.2s steps(6,end) 3}' +
-      '@keyframes pieNudge{0%,100%{transform:translateY(0)}20%{transform:translateY(-6px)}40%{transform:translateY(0)}60%{transform:translateY(-3px)}}' +
       '@media (max-aspect-ratio: 1/1), (max-width: 820px){' +
         '#pie .eq{gap:4px}#pie .chip{min-width:0;flex:1;padding:5px 4px 4px;box-shadow:3px 3px 0 var(--sh-tan)}#pie .chip b{font-size:20px}#pie .chip small{font-size:11.5px;white-space:normal;text-align:center}' +
         '#pie .op{font-size:22px}#pie .eqlab{display:none}#pie.playing .eq{display:none}' +
       '}' +
-      '@media (prefers-reduced-motion: reduce){#pie .chip.pop,#pie .navrow .btn.pie-nudge{animation:none}}';
+      '@media (prefers-reduced-motion: reduce){#pie .chip.pop{animation:none}}';
     document.head.appendChild(css);
     var eq = S.el('div', { class: 'eq', 'aria-live': 'polite' }, api.bar);
     var lab = S.el('span', { class: 'eqlab' }, eq);
     var c1 = S.el('span', { class: 'chip' }, eq, '<b></b><small></small>'), op1 = S.el('span', { class: 'op', 'aria-hidden': 'true' }, eq);
     var c2 = S.el('span', { class: 'chip' }, eq, '<b></b><small></small>'), op2 = S.el('span', { class: 'op', 'aria-hidden': 'true' }, eq, '=');
-    var c3 = S.el('span', { class: 'chip' }, eq, '<b></b><small></small>');
+    var c3 = S.el('span', { class: 'chip', 'data-big': '' }, eq, '<b></b><small></small>');
     function chip(c, v, sm, cls) {
       var b = c.querySelector('b'), txt = String(v);
-      if (b.textContent !== txt) { if (/\d/.test(b.textContent) && /\d/.test(txt)) S.countTo(b, txt); else b.textContent = txt; if (!S.reduce && b.textContent) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
-      c.querySelector('small').textContent = sm;
+      if (S.shown(b) !== txt) { if (/\d/.test(b.textContent) && /\d/.test(txt)) S.countTo(b, txt); else b.textContent = txt; if (!S.reduce && b.textContent) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
+      c.querySelector('small').innerHTML = K.esc(sm).replace(/\bwas (\d[\d,.]*)/, 'was <s class="was">$1</s>');     // the old figure, struck
       c.className = 'chip' + (cls ? ' ' + cls : '');
     }
     var shownKey = '';
@@ -354,8 +357,15 @@ SITE.register({
 
     /* the reader's control: a rod-and-bobber slider under the equation, on the reader's turn */
     var playBox = S.el('div', { class: 'sc-play' }, api.bar);
+    var winked = false;
     var key = S.slider(playBox, { label: 'Fish taken out, for every 100 in the old count', min: 20, max: 100, step: 1, value: 100, fmt: String,
-      ticks: [{ v: 58, t: '58: the recount', hot: true }, { v: 100, t: '100: the old count' }], onInput: function (v) { if (st8.turn) setN(v); } });
+      ticks: [{ v: 58, t: '58: the recount', hot: true }, { v: 100, t: '100: the old count' }], onInput: function (v) { if (st8.turn) setN(v); },
+      snaps: [{ v: 58, onSnap: landed58 }, { v: 100 }], snapR: 2 });
+    // the first time the reader lets go on 58: the Striper tips his hat and winks, and SMALLER ALL ALONG thumps again
+    function landed58() {
+      if (winked || !st8.turn) return;
+      winked = true; A.hat = T.clock + 1; A.stamp = T.clock + 1; st8.stamp = true; want(24);
+    }
     function setN(v) {
       v = Math.round(S.clamp(v, 20, 100));
       if (v === Math.round(TW.slice.t)) return;
@@ -365,12 +375,14 @@ SITE.register({
     }
 
     /* ---------------- the close ---------------- */
-    api.take('The recount doesn’t put fish back in the water. It says there were fewer stripers out there all along. If the fishing rate holds, a smaller catch means a smaller school.');
+    api.take('The recount doesn’t put fish back in the water. If the fishing rate holds, a smaller catch means a smaller school: fewer stripers than the old count suggested.');
     api.more('How close is this to a real assessment?',
-      '<p>“Fish taken out” means every striper removed by fishing in a year: the fish kept, and released fish that die. It’s far fewer than the fish caught, because most released fish survive.</p>' +
-      '<p>The 1 in 5 comes from NOAA’s 2023 teaching example for managers: 6.9 million fish taken out of 34.5 million. In a real assessment the rate isn’t assumed. The model estimates it for each year from the ages of fish caught, tagging studies and surveys.</p>' +
-      '<p>Real assessments are more detailed than one slice of pie. They follow each year class of fish through time and weigh several sources of evidence. But they work backward from the fish removed in the same way.</p>' +
-      '<p>The numbers here are an example in round numbers. The 58 is the recount’s figure across the whole record: trips, kept fish and released fish each came to about 58 for every 100 in the old count. Commercial fishing, which wasn’t recounted, also takes stripers, so in a real assessment the school would shrink by somewhat less than the anglers’ catch.</p>');
+      '<p>“Fish taken out” means every striper removed by fishing in a year: the fish kept, and released fish that die. It’s far fewer than the fish caught, because most released fish survive. In the song and the film, “caught” and “the catch” mean fish taken out.</p>' +
+      '<p>The 1 in 5 comes from a 2023 stock assessment example for fishery managers, using 2022 figures: 6.9 million fish taken out of 34.5 million. In a real assessment the rate isn’t assumed. The model estimates it for each year from the ages of fish caught, tagging studies and surveys.</p>' +
+      '<p>Real assessments are more detailed than one slice of pie. They follow each year class of fish (fish born in the same year) through time and weigh several sources of evidence. But they work backward from the fish removed in the same way.</p>' +
+      '<p>The numbers here are an example in round numbers. The 58 is the recount’s figure across the whole record: trips, kept fish and released fish each came to about 58 for every 100 in the old count. Commercial fishing, which wasn’t recounted, also takes stripers, so in a real assessment the school would shrink by somewhat less than the anglers’ catch.</p>' +
+      '<p>The recount cut older years more than recent ones: in 2025 the corrected count has ' + Math.round(100 * RC.series.trips.fixed[RC.years.length - 1] / RC.series.trips.old[RC.years.length - 1]) + ' trips for every 100 in the old one. So the example’s 58 describes the whole record, not today’s school.</p>' +
+      '<p class="src">Sources: the 1 in 5 from a 2023 stock assessment example for managers, as presented by ASGA on Sept 22, 2026; the 58 from ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' corrected estimates, posted Aug 31, 2026.</p>');
 
     // the reader's turn: push the slice smaller (toward the pie's centre) or pull it bigger
     var drag0 = null;
@@ -379,6 +391,9 @@ SITE.register({
       move: function (name, pt) { if (drag0) setN(drag0.n - ((drag0.x - pt.x) * 0.6 + (pt.y - drag0.y) * 0.8) / 4); },
       end: function () { drag0 = null; }
     });
+
+    // the idle heartbeat (SITE.idle): the boil, the blinks, the gulls and the School keep going between moments
+    S.idle(api.stageHost, function () { T.clock++; stage.drawing++; stage.render(); }, function () { return !!T.raf || !!stage.anim || !!drag0; });
 
     snap(0);
     document.addEventListener('site:fonts', function () { stage.render(); });

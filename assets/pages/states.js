@@ -105,6 +105,7 @@ SITE.register({
           if (t1 > y - 480 * SS && t0 < y - 370 * SS) x = Math.max(x, r + 106 * SS + 10);      // his hat
           if (t1 > y - 370 * SS && t0 < y - 130 * SS) x = Math.max(x, r + 170 * SS + 16);      // his head and body
         });
+        if (L.port && (id === 'DE' || id === 'MD' || id === 'VA')) x += 120;
         return { x: x, y: y, tx: tx, ty: ty };
       });
     }
@@ -115,7 +116,8 @@ SITE.register({
       return [cr(p0.x, p1.x, p2.x, p3.x), cr(p0.y, p1.y, p2.y, p3.y)];
     }
 
-    var st8 = { m: 'trips', s: 'ME', u: 0, swim: false, dir: 1, phase: 0, drag: false, pop: 99, still: false, flip: 0, tried: false, book: false, reveal: 0, revealed: false, turn: false, hat: false };
+    var st8 = { m: 'trips', s: 'ME', u: 0, swim: false, dir: 1, phase: 0, drag: false, pop: 99, still: false, flip: 0, tried: false, book: false, reveal: 0, revealed: false, turn: false, hat: false,
+      press: null, seen: {}, cheered: false, cheer: false, squash: 0 };
     st8.flip = ghosts(cur());
 
     /* ---------------- drawing helpers ---------------- */
@@ -261,6 +263,7 @@ SITE.register({
         leads += path('M' + N(g.m[0]) + ',' + N(g.m[1]) + ' L' + N(bx) + ',' + N(by), 'none', sel ? 6 : 4, '', sel ? C.brick : INK);
         leads += '<circle cx="' + N(g.m[0]) + '" cy="' + N(g.m[1]) + '" r="' + N((sel ? 15 : 11) * k) + '" fill="' + (sel ? C.brick : C.mustard) + '" stroke="' + INK + '" stroke-width="5"/>';
         var sc = sel && st8.pop >= 0 && st8.pop < 4 ? [1, 1.28, 1.12, 0.95][st8.pop] : 1;
+        if (st8.press === id) sc = 0.92;
         var sg = '<rect x="' + N(-g.w / 2 + 6) + '" y="' + N(-g.h / 2 + 8) + '" width="' + g.w + '" height="' + g.h + '" rx="12" fill="' + INK + '" opacity=".15"/>' +
           '<rect x="' + N(-g.w / 2) + '" y="' + N(-g.h / 2) + '" width="' + g.w + '" height="' + g.h + '" rx="12" fill="' + (sel ? C.mustard : C.cream) + '" stroke="' + INK + '" stroke-width="' + (sel ? 7 : 5) + '"/>' +
           K.text(g.txt, -g.w / 2 + 18, K.fs('label', L.lab) * 0.36, { size: L.lab, anchor: 'start' });
@@ -273,7 +276,10 @@ SITE.register({
             sg += '<circle cx="' + N(qx) + '" cy="' + N(qy) + '" r="' + N(pr * pk) + '" fill="' + (ghost ? C.white : C.sea) + '" stroke="' + (ghost ? C.gray : INK) + '" stroke-width="3.5"' + (ghost ? ' stroke-dasharray="5 4"' : '') + '/>';
           }
         }
-        signs += K.at(g.x, g.y, sc, sel ? -2 : 0, sg);
+        if (st8.seen[id]) sg += K.check({ x: g.w / 2 - 10, y: -g.h / 2 + 2, scale: 0.42, color: C.brick });
+        var sgn = K.at(g.x, g.y, sc, sel ? -2 : 0, sg);
+        if (st8.press === id) sgn = '<g transform="translate(' + N(g.x) + ' ' + N(g.y + g.h / 2) + ') scale(1.06 0.9) translate(' + N(-g.x) + ' ' + N(-g.y - g.h / 2) + ')">' + sgn + '</g>';
+        signs += '<g data-sg="' + id + '">' + sgn + '</g>';
       });
       s += '<g aria-hidden="true">' + art + leads + signs;
 
@@ -281,10 +287,11 @@ SITE.register({
       var stn = STN[IDS.indexOf(st8.s)], fishAt = st8.swim ? along(STN, st8.u) : [stn.x, stn.y];
       var kid = { x: L.KX, y: L.KY, scale: L.KS, pose: 'neutral', expr: 'kind', look: [1, -0.3], blink: (st.drawing % 44) === 3 };
       var here = !st8.swim && st8.pop >= 4;
-      if (st8.hat) { kid.pose = 'cheer'; kid.expr = 'grin'; }
+      if (st8.hat || st8.cheer) { kid.pose = 'cheer'; kid.expr = 'grin'; if (L.port) kid.x = L.KX + 34; }
       else if (st8.swim) { kid.pose = 'point'; kid.expr = 'eager'; kid.aim = S.clamp(Math.atan2(fishAt[1] - 200 * L.SS - (L.KY - 380 * L.KS), fishAt[0] - L.KX) * 180 / Math.PI, -60, 25); kid.look = [1, -0.4]; }
       else if (here && (st8.s === 'MD' || st8.s === 'VA')) { kid.pose = 'cheeks'; kid.expr = 'happy'; }
       else if (here && Math.abs(cutOf(t)) >= 50) { kid.pose = 'cheeks'; kid.expr = 'wide'; }
+      else if (st8.turn) { var klk = S.lookAt(stage, K.kidPoints(kid).eye, kid.flip); if (klk) kid.look = klk; }
       s += S.shadow(L.KX, L.KY, 190 * L.KS / 0.8, 'sand') + K.kid(kid);
 
       /* the Striper: swimming the coast on twos, or popped up at his station pointing at the sign */
@@ -296,7 +303,7 @@ SITE.register({
         fx = fishAt[0]; fy = fishAt[1] - 130 * SS;
         fish += '<ellipse cx="' + N(fx) + '" cy="' + N(fy + 26 * SS) + '" rx="' + N(230 * SS) + '" ry="' + N(30 * SS) + '" fill="none" stroke="' + S.HI.sea + '" stroke-width="5"/>';
         fish += K.speedLines({ x: fx + (left ? 250 : -250) * SS, y: fy - 90 * SS, len: 90 * SS / 0.75, n: 3, gap: 26, w: 6, flip: left });
-        fish += K.striper({ x: fx, y: fy, scale: SS, flip: left, rot: rot, pose: 'swim', phase: (st8.phase % 4) / 4, expr: st8.drag ? 'grin' : 'hopeful', suitcase: false });
+        fish += K.striper({ x: fx, y: fy, scale: SS, flip: left, rot: rot, pose: 'swim', phase: (st8.phase % 4) / 4, expr: st8.drag ? 'grin' : 'hopeful', suitcase: false, squash: st8.squash || 0 });
         if (st8.turn) fish = S.grab('fish', fish, fx, fy - 90 * SS, 170 * SS);
       } else {
         fx = stn.x; fy = stn.y;
@@ -306,6 +313,10 @@ SITE.register({
         if (hat) { o.pose = 'tipHat'; o.expr = 'wink'; }
         else if (bay) { o.pose = 'hopeful'; o.expr = 'hopeful'; o.flip = false; o.look = [0.2, -0.6]; if (!st8.still && st8.pop >= 3 && st8.pop < 99) o.mouth = st8.pop % 3 === 2 ? 'closed' : 'open'; }
         else { o.pose = 'point'; o.expr = 'kind'; o.reach = [stn.tx + 10, stn.ty]; o.look = [1, 0.1]; }
+        if (!hat && (st8.still || st8.pop >= 99)) {
+          o.squash = S.breath(st);
+          var slk = st8.turn && !bay && S.lookAt(stage, K.striperPoints(o).eye, o.flip); if (slk) o.look = slk;
+        }
         var ring = '<ellipse cx="' + N(fx - 20 * SS) + '" cy="' + N(crest + 8 * SS) + '" rx="' + N(170 * SS) + '" ry="' + N(30 * SS) + '" fill="none" stroke="' + S.HI.sea + '" stroke-width="6"/>';
         // the water in front of him: a wave crest over his lower body, just wide enough to hide it
         var hw = 75 * SS, x0 = fx - 160 * SS, wd = 'M' + N(x0) + ',' + N(crest + 6) + ' q' + N(hw / 2) + ',-18 ' + N(hw) + ',0 t' + N(hw) + ',0 t' + N(hw) + ',0 t' + N(hw) + ',0';
@@ -323,7 +334,7 @@ SITE.register({
       // until the user has tried: a hint tag with a dashed arrow down the coast
       if (st8.turn && !st8.tried) {
         // in open water, clear of every sign
-        var hx = L.port ? 800 : W - 330, hy = L.port ? 640 : H - 340;
+        var hx = L.port ? 800 : W - 330, hy = (L.port ? 640 : H - 340) - ((st.drawing >> 1) % 2 ? 6 : 0);
         if (L.port) s += path('M' + N(hx - 150) + ',' + N(hy + 28) + ' Q' + N(hx - 220) + ',' + N(hy + 110) + ' ' + N(hx - 318) + ',' + N(hy + 104), 'none', 7, ' stroke-dasharray="16 12"', C.brick);
         s += K.tag('TAP A STATE', hx, hy, { size: L.port ? 44 : 44, rot: -3, fill: C.mustard });
       }
@@ -333,7 +344,7 @@ SITE.register({
       var hit = '<g role="radiogroup" aria-label="States on the map, Maine to Virginia">';
       IDS.forEach(function (id) {
         var g = G[id], tt = byId[id], sel = id === st8.s, pad = 9;
-        hit += '<g data-st="' + id + '" role="radio" aria-checked="' + sel + '" tabindex="' + (sel ? 0 : -1) + '" aria-label="' + tt.name + ': ' + per(tt, 0) + ' trips for every 100 on the old books">' +
+        hit += '<g data-st="' + id + '" role="radio" aria-checked="' + sel + '" tabindex="' + (sel && st8.turn ? 0 : -1) + '" aria-label="' + tt.name + ': ' + per(tt, 0) + ' trips for every 100 in the old count">' +
           '<circle cx="' + N(g.m[0]) + '" cy="' + N(g.m[1]) + '" r="30" fill="transparent"/>' +
           '<rect class="ring" x="' + N(g.x - g.w / 2 - pad) + '" y="' + N(g.y - g.h / 2 - pad) + '" width="' + (g.w + 2 * pad) + '" height="' + (g.h + 2 * pad) + '" rx="16" fill="transparent"/></g>';
       });
@@ -343,8 +354,8 @@ SITE.register({
 
     var stage = api.stage(draw, function () {
       var t = cur(), n = ghosts(t);
-      return 'Map of the coast from Maine to Virginia. Each state’s sign shows its striper trips on the old books as 10 dots, the gray ones the share that never happened. The Striper is at ' + t.name +
-        ': ' + per(t, 0) + ' trips for every 100 on the old books.';
+      return 'Map of the coast from Maine to Virginia. Each state’s sign shows its striper trips in the old count as 10 dots, the gray ones the share that never happened. The Striper is at ' + t.name +
+        ': ' + per(t, 0) + ' trips for every 100 in the old count.';
     });
     stage.svg.setAttribute('role', 'group');
     // keep keyboard focus on the chosen state's sign across redraws
@@ -357,24 +368,26 @@ SITE.register({
 
     /* ---------------- moments ---------------- */
     function stop() { if (stage.anim) { cancelAnimationFrame(stage.anim.raf); stage.anim = null; } }
-    function pick(id) {
+    function pick(id, user) {
       var to = IDS.indexOf(id); if (to < 0) return;
       st8.s = id; show();
       var from = st8.u, du = to - from;
-      st8.flip = 0; st8.pop = -1; st8.still = false;
+      st8.flip = 0; st8.pop = -1; st8.still = false; st8.squash = 0; st8.cheer = false;
       if (Math.abs(du) < 0.01) { st8.u = to; st8.swim = false; arrive(); return; }
-      var n = Math.round(S.clamp(5 + Math.abs(du) * 2.6, 6, 28));
+      var n = Math.round(S.clamp(5 + Math.abs(du) * 2.6, 6, user ? 16 : 28)), k = user ? 1 : 0;
       st8.swim = true; st8.dir = du > 0 ? 1 : -1;
-      stage.play(n, function (d) { st8.u = from + du * S.ease.inOut(d / n); st8.phase = d; },
-        function () { st8.u = to; st8.swim = false; arrive(); });
+      stage.play(n + k, function (d) { st8.squash = d < k ? 0.12 : 0; st8.u = from + du * S.ease.inOut(Math.max(0, d - k) / n); st8.phase = d; },
+        function () { st8.u = to; st8.swim = false; st8.squash = 0; arrive(); });
     }
-    /* he pops up, the sign pops, then the logbook's tokens flip one per drawing */
+    /* he pops up, the sign pops, then the logbook's tokens flip one per drawing; Kit cheers once when the reader
+       reaches a third state of their own */
     function arrive() {
-      var n = ghosts(cur());
-      stage.play(n + 5, function (d) { st8.pop = d; st8.flip = S.clamp(d - 4, 0, n); },
-        function () { st8.pop = 99; st8.flip = n; stage.render(); });
+      var n = ghosts(cur()), cheer = st8.turn && !st8.cheered && Object.keys(st8.seen).length >= 3;
+      if (cheer) st8.cheered = true;
+      stage.play(Math.max(n + 5, cheer ? 16 : 0), function (d) { st8.pop = Math.min(d, 99); st8.flip = S.clamp(d - 4, 0, n); st8.cheer = cheer && d < 16; },
+        function () { st8.pop = 99; st8.flip = n; st8.cheer = cheer && S.reduce; stage.render(); });
     }
-    function userPick(id) { if (!st8.turn) return; st8.tried = true; pick(id); }
+    function userPick(id) { if (!st8.turn) return; st8.tried = true; st8.seen[id] = true; S.buzz(8); pick(id, true); }
     /* the dots pop onto the signs, one sign every two drawings */
     function reveal() {
       if (st8.revealed) return; st8.revealed = true;
@@ -384,21 +397,21 @@ SITE.register({
     /* ---------------- the walkthrough ---------------- */
     function st(id) { return byId[id]; }
     var STEPS = [
-      { cls: 'first', h: '<p>The correction didn’t land evenly along the coast. Each state’s sign shows its striper fishing trips on the old books, 1990 to 2025, as <b>10 dots</b>. The <b>gray</b> dots are the share the corrected count says never happened.</p>' },
-      { h: '<p><b>Maine.</b> For every 100 trips on the old books, the corrected count has <b class="num">' + per(st('ME'), 0) + '</b>. About 3 in 10 never happened.</p>' },
-      { h: '<p><b>Connecticut</b> had the smallest cut: <b class="num">' + per(st('CT'), 0) + '</b> trips for every 100 on the old books.</p>' },
-      { h: '<p><b>Virginia</b> had the biggest: <b class="num">' + per(st('VA'), 0) + '</b> trips for every 100, and only <b class="num">' + per(st('VA'), 1) + '</b> fish kept for every 100 on the old books.</p>' },
-      { cls: 'turn', h: '<span class="go">Your turn</span><p>Tap any state’s sign and the Striper swims there. Under the picture: its trips, fish kept and fish released, for every 100 on the old books.</p>' }
+      { cls: 'first', h: '<p>The correction didn’t land evenly along the coast. Each state’s sign shows its striper fishing trips in the old count, 1990 to 2025, as <b>10 dots</b>. The <b>gray</b> dots are the share the corrected count says never happened.</p>' },
+      { h: '<p><b>Maine.</b> For every 100 trips in the old count, the corrected count has <b class="num">' + per(st('ME'), 0) + '</b>. The other ' + (100 - per(st('ME'), 0)) + ' never happened.</p>' },
+      { h: '<p><b>Connecticut</b> had the smallest cut: <b class="num">' + per(st('CT'), 0) + '</b> trips for every 100 in the old count.</p>' },
+      { h: '<p><b>Virginia</b> had the biggest: <b class="num">' + per(st('VA'), 0) + '</b> trips for every 100, and only <b class="num">' + per(st('VA'), 1) + '</b> fish kept for every 100 in the old count.</p>' },
+      { cls: 'turn', h: '<span class="go">Your turn</span><p>Tap any state’s sign and the Striper swims there. Under the picture: its trips, fish kept and fish released, for every 100 in the old count.</p>' }
     ];
     var AT_STEP = ['ME', 'ME', 'CT', 'VA'], PLAY = STEPS.length - 1, OUTRO = STEPS.length;
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
-    function snap(n) {
+    function snap(n, quiet) {
       stop();
       var id = AT_STEP[Math.min(n, AT_STEP.length - 1)];
       st8.s = id; st8.u = IDS.indexOf(id); st8.swim = false; st8.drag = false; st8.pop = 99; st8.still = true; st8.flip = ghosts(cur());
       st8.book = n >= 1; st8.turn = n >= PLAY; st8.hat = n >= OUTRO; if (n < PLAY) st8.tried = false;
       if (st8.revealed) st8.reveal = 99;
-      api.playing(st8.turn); show(); stage.render();
+      api.playing(st8.turn); show(); if (!quiet) stage.render();
     }
     function enter(n) {
       if (n === 1) { st8.book = true; st8.reveal = 99; pick('ME'); }
@@ -408,34 +421,57 @@ SITE.register({
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) { st8.hat = n === OUTRO; if (st8.hat) closing(); stage.render(); return; }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
       if (n === OUTRO) closing();
     });
-    function closing() {
-      api.gotIt();
-      var nx = api.nav && api.nav.querySelector('.btn'); if (nx && !S.reduce) { nx.classList.remove('nudge'); void nx.offsetWidth; nx.classList.add('nudge'); }
-    }
+    function closing() { S.reward(api); }
 
     /* ---------------- under the picture: the chosen state, for every 100 on the old books ---------------- */
     var eq = S.el('div', { class: 'eq', 'aria-live': 'polite' }, api.bar);
     var yrB = S.el('span', { class: 'eqyr' }, eq, '<b></b><small></small>');
-    S.el('span', { class: 'eqlab' }, eq, 'Corrected, for every 100 on the old books');
+    S.el('span', { class: 'eqlab' }, eq, 'Corrected, for every 100 in the old count');
     var cs = ['trips', 'fish kept', 'fish released'].map(function (k) { return S.el('span', { class: 'chip' }, eq, '<b></b><small>' + k + '</small>'); });
     function show() {
       var t = cur();
       yrB.querySelector('b').textContent = t.id; yrB.querySelector('small').textContent = t.name;
       cs.forEach(function (c, i) {
         var b = c.querySelector('b'), v = String(per(t, i));
-        if (b.textContent !== v) { if (b.textContent) S.countTo(b, v); else b.textContent = v; if (!S.reduce) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
+        if (S.shown(b) !== v) { if (b.textContent) S.countTo(b, v); else b.textContent = v; if (!S.reduce) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
       });
     }
-    api.take('Every state’s numbers came down, but not evenly. The corrected count has 77 of every 100 trips on Connecticut’s old books and 40 of every 100 on Virginia’s. Six of the ten states lost more than a third of their estimated trips.');
-    S.el('p', { class: 'fact' }, api.panel, '<b>From the Chesapeake</b>ASGA notes that about 8 in 10 commercially harvested stripers, counted by number of fish, come from the Chesapeake Bay.');
-    api.more('About these numbers', '<p>Each state’s change from the old to the corrected estimates, 1990 to 2025 combined: striped bass fishing trips, fish kept (harvest) and fish released. The dots and the logbook round each state to the nearest 10 in 100, so Connecticut’s 77 shows as 2 gray dots. Source: NOAA MRIP revision, Aug 28, 2026, as presented by ASGA on Sept 22, 2026.</p>');
+    api.take('Every state’s numbers came down, but not evenly. For every 100 trips in the old count, the corrected count has ' + per(st('CT'), 0) + ' in Connecticut and ' + per(st('VA'), 0) + ' in Virginia. Six of the ten states lost more than a third of their estimated trips.');
+    api.more('About these numbers', '<p>Each state’s change from the old to the corrected estimates, 1990 to 2025 combined: striped bass fishing trips, fish kept (harvest) and fish released. The dots and the logbook round each state to the nearest 10 in 100, so Connecticut’s 77 shows as 2 gray dots. ASGA’s slide covers the ten states from Maine to Virginia.</p>' +
+      '<p class="src">Source: ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' corrected estimates, posted Aug 31, 2026, as presented by ASGA on Sept 22, 2026.</p>');
 
     /* ---------------- pointer and keys on the map ---------------- */
-    stage.svg.addEventListener('click', function (e) { var g = e.target.closest && e.target.closest('[data-st]'); if (g) userPick(g.getAttribute('data-st')); });
+    /* a tap picks the state whose sign or marker is nearest the finger (within 40 px), so thin signs and close
+       neighbours don't steal taps (UX #5). The sign squashes for one drawing under the finger, and a touch ring
+       answers at once (polish B7, B5). */
+    function nearest(e) {
+      var L = lay(stage), G = geo(L), pt = stage.toLocal(e), best = null, bd = 40 * (stage.upp || 3);
+      IDS.forEach(function (id) {
+        var g = G[id], dx = Math.max(0, Math.abs(pt.x - g.x) - g.w / 2), dy = Math.max(0, Math.abs(pt.y - g.y) - g.h / 2);
+        var d = Math.min(Math.hypot(dx, dy), Math.max(0, Math.hypot(pt.x - g.m[0], pt.y - g.m[1]) - 30));
+        if (d < bd) { bd = d; best = id; }
+      });
+      return best;
+    }
+    var pressT = 0;
+    stage.svg.addEventListener('pointerdown', function (e) {
+      if (!st8.turn || (e.target.closest && e.target.closest('[data-hit]'))) return;
+      var id = nearest(e); if (!id) return;
+      stage.ring(e); if (S.reduce) return;
+      st8.press = id;
+      // drawn next frame, so the element under the finger stays put for the touchstart that follows
+      requestAnimationFrame(function () { if (!stage.anim) stage.render(); });
+      clearTimeout(pressT); pressT = setTimeout(function () { st8.press = null; if (!stage.anim) stage.render(); }, 1000 / 12);
+    });
+    stage.svg.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('[data-hit]')) return;
+      var g = e.target.closest && e.target.closest('[data-st]'), id = e.detail === 0 && g ? g.getAttribute('data-st') : nearest(e);
+      if (id) userPick(id);
+    });
     stage.svg.addEventListener('keydown', function (e) {
       var g = e.target.closest && e.target.closest('[data-st]'); if (!g || !st8.turn) return;
       var i = IDS.indexOf(g.getAttribute('data-st')), j = i;
@@ -466,7 +502,9 @@ SITE.register({
     css.textContent =
       '#states svg.stage [role=radio]{cursor:pointer;outline:none}' +
       '#states svg.stage [role=radio] .ring{stroke:none}' +
-      '#states svg.stage [role=radio]:focus-visible .ring{stroke:#2F7CA0;stroke-width:9px}' +
+      '#states svg.stage [role=radio]:focus-visible .ring{stroke:#1E1510;stroke-width:9px}' +
+      // laptop: the sign under the pointer lifts 6 units (polish B7)
+      '@media (hover:hover){' + IDS.map(function (id) { return '#states svg.stage:has([data-st="' + id + '"]:hover) [data-sg="' + id + '"]'; }).join(',') + '{translate:0 -6px}}' +
       '#states .eq{display:flex;align-items:stretch;justify-content:center;gap:clamp(6px,.9vw,14px)}' +
       '#states .eqyr{display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:clamp(110px,10vw,170px);padding:6px 10px;border-radius:10px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);transform:rotate(-2deg);box-shadow:4px 4px 0 var(--sh-tan)}' +
       '#states .eqyr b{font:400 clamp(24px,2.1vw,34px)/1 var(--f-label);color:var(--mustard)}#states .eqyr small{font:700 clamp(11px,.85vw,13px)/1.1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;margin-top:3px;white-space:nowrap}' +
@@ -479,10 +517,11 @@ SITE.register({
       '#states .fact b{display:block;margin-bottom:4px;font:400 17px/1.1 var(--f-label);color:var(--brick)}' +
       '#states .fact.on{animation:statesFact .42s steps(5,end)}' +
       '@keyframes statesFact{0%{transform:scale(.6);opacity:0}40%{transform:scale(1.06);opacity:1}70%{transform:scale(.97)}100%{transform:scale(1)}}' +
-      '#states .navrow .btn.nudge{animation:nudge 1.2s steps(6,end) 3}' +
-      '@media (prefers-reduced-motion: reduce){#states .fact.on,#states .navrow .btn.nudge,#states .chip.pop{animation:none}}';
+      '@media (prefers-reduced-motion: reduce){#states .fact.on,#states .chip.pop{animation:none}}';
     document.head.appendChild(css);
 
+    // the idle heartbeat (SITE.idle): the boil, the waves, the cattails, the blinks and the hint's bob between moments
+    S.idle(api.stageHost, function () { stage.drawing++; stage.render(); }, function () { return !!stage.anim || st8.drag; });
     snap(0);
     if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { if (es[0].isIntersecting) reveal(); }, { threshold: 0.35 }).observe(api.stageHost);
     else { st8.reveal = 99; st8.revealed = true; }

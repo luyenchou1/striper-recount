@@ -1,33 +1,42 @@
-/* 5. Who's killing the fish? (the film's s11 and s12, 2:20 to 2:43).
-   A scrolly page, like the others (Luyen's reviews, Sep 26): a walkthrough with a spotlight (the picture is
-   busy and still, and each step's motion stays inside its subject), plain numbers (killed in millions; rates
-   as "in 100", never a percentage), an equation under the picture, then one slider for the reader.
+/* 5. Stripers killed by fishing (the film's s11 and s12, 2:20 to 2:43).
+   A scrolly page, like the others: a walkthrough with a spotlight (the picture is busy and holds still, and each
+   step's motion stays inside its subject), plain numbers (killed in millions; rates as "in 100"), an equation
+   under the picture, then one slider for the reader.
    The film's two framed stacks on the pier, drawn to one scale: every block, in either stack, is 250,000
    stripers, and both stacks stand on the same baseline beside a tide staff.
      ANGLERS    = fish kept + released fish that die (9 in 100 in the assessment; about 4.5 in the new study)
      COMMERCIAL = landings + fish thrown back dead (a dashed "?" cap on top, sized by the discard figure)
-   Steps: what counts; the anglers' old numbers; the commercial count; the recount (the shade pulls down a
-   notch, Kit stamps RECOUNT and the top blocks go to gray ghosts); the release study (a second notch, RELEASE
-   STUDY); same commercial count, smaller anglers' count (BIGGER SHARE lands on the commercial frame, the
-   Striper's line); the question mark (the 1990s estimate drawn as a dashed ghost cap). Then the reader's
-   turn: a slider for the commercial discard figure. No commercial share is lettered anywhere, and nothing
-   predicts the stock estimate. The chalkboard holds only the inputs. */
+   Steps, one number to a card: what counts as a kill; each block is 250,000; the anglers' old count; the
+   commercial count; the recount (the shade pulls down a notch, Kit stamps RECOUNT, then the blocks it took lift off
+   the stack one at a time into a crate at her feet, and she catches the last); the release study; if the assessment
+   uses it (the same as the recount, RELEASE STUDY); commercial didn't go up (the film's exchange at 2:40, and BIGGER SHARE lands on the commercial frame); the
+   question mark (the 1990s estimate drawn as a dashed ghost cap). Then the reader's turn: a slider for the
+   commercial discard figure, from 0 to the 1990s estimate. The chalkboard holds the inputs, and each correction
+   is written in as it lands; on a phone the board shows only the line that changes. */
 SITE.register({
-  id: 'removals', short: 'Who’s killing the fish', title: 'Who’s killing the fish?', scrolly: true,
+  id: 'removals', short: 'Stripers killed by fishing', title: 'Stripers killed by fishing', scrolly: true,
   build: function (api) {
     var S = SITE, K = S.K, C = S.C, INK = C.ink, R = RC.removals2025, RT = RC.rates, N = S.N, path = S.path;
     var BLK = 0.25, NA = 12, NC = 7, PLATE = ' ', LUNGE = 22;          // millions of fish per block; frame capacities
     function r1(v) { return Math.round(v * 10) / 10; }
     var RM_OLD = r1(RT.releaseOld * 100), RM_NEW = r1(RT.releaseNew * 100), DISC = r1(RT.discardNow * 100), DISC90 = r1(RT.discard1990s * 100);
     var PRE = [{ fixed: false, rm: RM_OLD }, { fixed: true, rm: RM_OLD }, { fixed: true, rm: RM_NEW }];
-    var st8 = { fixed: false, rm: RM_OLD, disc: DISC, prev: null, busy: false, drag: null, qdrag: null, pull: null, spin: -1, snapL: 0,
-      dispL: null, puff: null, kit: null, hideRC: false, hideST: false, paid: false, pay: 0, talk: -1, say: false, tried: true, focus: null, fz: -99, ghost90: false, turn: false };
+    var st8 = { fixed: false, rm: RM_OLD, disc: DISC, prev: null, busy: false, pull: null, spin: -1, snapL: 0, dispL: null, kit: null,
+      hideRC: false, hideST: false, paid: false, pay: 0, talk: -1, ktalk: -1, say: false, kq: false, tried: false, focus: null, fz: -99,
+      ghost90: false, turn: false, crate: 0, crateT: -99, swapT: -99, fly: null, sq: -99, pb: [], pbT: -99, surp: -99, wr: {} };
+
+    /* Every total on the page (the stacks, the chips under the picture, the step cards, the takeaway and the
+       picture's label) comes from these lines and data.js. Anglers' kills are the fish kept plus the released fish
+       that die. Whether the 2025 kept figure already includes release deaths is being confirmed with ASGA; if it
+       does, angM is the one line to change. */
     function angM(o) { o = o || st8; return (o.fixed ? R.kept : R.keptOld) + (o.fixed ? R.released : R.releasedOld) * o.rm / 100; }
     function discM(o) { o = o || st8; return R.commLandings * o.disc / 100; }
+    function comM(o) { return R.commLandings + discM(o); }
+    function mil(v) { return (Math.round(v * 100) / 100).toFixed(2) + ' million'; }
+    var A_OLD = angM(PRE[0]), A_FIX = angM(PRE[1]), A_ST = angM(PRE[2]), C_NOW = comM({ disc: DISC });
+
     function lv(m) { return m / BLK; }
-    var L_OLD = lv(angM(PRE[0])), L_FIX = lv(angM(PRE[1])), L_ST = lv(angM(PRE[2])), L_LAND = lv(R.commLandings);
-    function notchOf(o) { for (var i = 0; i < 3; i++) if (PRE[i].fixed === o.fixed && Math.abs(PRE[i].rm - o.rm) < 1e-6) return i; return -1; }
-    function fullNotch() { return Math.abs(st8.disc - DISC) < 1e-6 ? notchOf(st8) : null; }
+    var L_OLD = lv(A_OLD), L_FIX = lv(A_FIX), L_ST = lv(A_ST), L_LAND = lv(R.commLandings);
     function fmtP(v) { return String(Math.abs(v - Math.round(v)) < 1e-6 ? Math.round(v) : v.toFixed(1)); }      // a rate, as "in 100"
 
     /* ---------------- small drawing helpers ---------------- */
@@ -49,6 +58,7 @@ SITE.register({
       return path('M' + N(ax) + ',' + N(ay) + ' L' + N(o.x) + ',' + N(o.y - (o.h || 110) / 2 + 6), 'none', 5) + circ(ax, ay, 7, C.cream, 4) + S.tag(o);
     }
     function tagW(lines, size) { var m = 0; lines.forEach(function (l) { m = Math.max(m, tw(l, size, 'label')); }); return Math.round(m + 56); }
+    function around(x, y, k, inner) { return k === 1 ? inner : '<g transform="translate(' + N(x) + ' ' + N(y) + ') scale(' + k + ') translate(' + N(-x) + ' ' + N(-y) + ')">' + inner + '</g>'; }
 
     /* ---------------- layout, per orientation ---------------- */
     function lay(st) {
@@ -75,6 +85,10 @@ SITE.register({
       L.imp = [yAt(L, impAt(L_FIX, L_OLD, 1)), yAt(L, impAt(L_ST, L_FIX, 2))];
       L.rung = [L.imp[0] + 12 - L.kfy, L.imp[1] + 12 - L.kfy];
       L.kx = L.XA - L.kfx; L.lx = L.kx - LUNGE; L.kd = L.lx - L.KD / 0.8 * L.KS * 1.25;
+      // the crate at Kit's feet, in front of her boots: the blocks the corrections take off drop into it
+      L.CW = L.BW + (port ? 80 : 70); L.CH = port ? 108 : 116; L.cx = Math.max(L.CW / 2 + 10, L.kd - 20);
+      // the phone's chalkboard: only the line that changes, big, up under the banner
+      if (port) L.pb = { x: 700, top: 170, w: 740, h: 256, gy: L.bgy };
       return L;
     }
     /* where an imprint sits in a ghost band (levels lo..hi): a one-line word goes inside one whole ghost block,
@@ -104,42 +118,98 @@ SITE.register({
       var h = Math.max(24, L.dock - L.hz - 40), x = (L.port ? 330 : L.XC - 170) + ((dr >> 1) % 2) * 8;
       return '<g opacity=".9">' + K.gillnet({ x: x, y: L.hz + 22, w: L.port ? 300 : 360, h: h, mesh: 30 }) + '</g>';
     }
-    /* the chalkboard: inputs only, in chalk. Old figures are struck through once they are corrected;
-       numbers you set yourself are in pink chalk. */
+
+    /* ---------------- the chalkboard ---------------- */
+    /* the inputs, in chalk. Old figures are struck through once they are corrected; numbers you set yourself are in
+       pink chalk. A correction is written in (polish D4): the strike draws across over three drawings, then the new
+       figure appears left to right over four, and three flecks of chalk dust fall under the end of the strike. */
+    var ROWLAB = { kept: 'KEPT', rel: 'RELEASED', rm: 'RELEASED FISH THAT DIE:', land: 'LANDED', disc: 'THROWN BACK DEAD' };
+    function rowVals(id, full) {                                     // full: the corrected form, for sizing
+      var fixedShown = full || (st8.fixed && !st8.hideRC), rmShown = full ? RM_NEW : st8.hideST && st8.prev ? st8.prev.rm : st8.rm, dsc = full ? DISC90 : st8.disc;
+      if (id === 'kept') return fixedShown ? { old: S.m(R.keptOld, 2), v: S.m(R.kept, 2), w: 'kept' } : { v: S.m(R.keptOld, 2) };
+      if (id === 'rel') return fixedShown ? { old: S.m(R.releasedOld, 1), v: S.m(R.released, 2), w: 'rel' } : { v: S.m(R.releasedOld, 1) };
+      if (id === 'rm') return Math.abs(rmShown - RM_OLD) < 1e-6 ? { v: fmtP(RM_OLD), post: 'IN 100' } : { old: fmtP(RM_OLD), pre: 'ABOUT', v: fmtP(rmShown), post: 'IN 100', w: 'rm' };
+      if (id === 'land') return { v: S.m(R.commLandings, 2) };
+      return Math.abs(dsc - DISC) < 1e-6 ? { v: fmtP(DISC), post: 'IN 100' } : { old: fmtP(DISC), v: fmtP(dsc), post: 'IN 100', fill: C.pink, w: 'disc' };
+    }
+    function valsW(o, lab, big) {
+      var gap = big * 0.3;
+      return (o.old ? tw(o.old, big) + gap : 0) + (o.pre ? tw(o.pre, lab) + 10 : 0) + tw(o.v, big) + (o.post ? tw(o.post, lab) + 10 : 0);
+    }
+    function wAge(k) { var t = st8.wr[k]; return S.reduce || t == null || t < 0 ? 99 : stage.drawing - t; }
+    function chalk(str, x, y, size, fill, op) { return (op ? '<g opacity="' + op + '">' : '') + K.text(str, N(x), N(y), { size: size, font: 'hand', fill: fill || C.cream, anchor: 'start' }) + (op ? '</g>' : ''); }
+    function chalkVals(x, y, o, lab, big, xMax) {
+      var s = '', g = '', cr = C.cream, gap = big * 0.3;
+      if (o.old && x + valsW(o, lab, big) > xMax) o = { v: o.v, pre: o.pre, post: o.post, fill: o.fill };    // no room: the struck figure gives way
+      var a = o.w ? wAge(o.w) : 99;
+      if (o.old) {
+        var w0 = tw(o.old, big), sy = y - big * 0.3, f = a >= 2 ? 1 : (a + 1) / 3;
+        s += chalk(o.old, x, y, big, cr, 0.5);
+        s += '<path d="M' + N(x - 4) + ',' + N(sy) + ' q' + N(w0 / 2) + ',-7 ' + N(w0 + 8) + ',3" fill="none" stroke="' + cr + '" stroke-width="5" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="' + (1 - f).toFixed(3) + '"/>';
+        if (a === 3 || a === 4) {                                    // chalk dust off the end of the strike
+          var ex = x + w0 + 4, fall = a === 3 ? 8 : 20, op = a === 3 ? 0.9 : 0.45;
+          [[-12, 0], [-2, 7], [7, 3]].forEach(function (q) { s += '<circle cx="' + N(ex + q[0]) + '" cy="' + N(sy + 10 + fall + q[1]) + '" r="4" fill="' + cr + '" opacity="' + op + '"/>'; });
+        }
+        x += w0 + gap;
+      }
+      var gx = x;
+      if (o.pre) { g += chalk(o.pre, x, y, lab, o.fill); x += tw(o.pre, lab) + 10; }
+      g += chalk(o.v, x, y, big, o.fill); x += tw(o.v, big);
+      if (o.post) { g += chalk(o.post, x + 10, y, lab, o.fill); x += 10 + tw(o.post, lab); }
+      if (o.old && a < 7) {                                          // written in, left to right
+        if (a < 3) g = '';
+        else {
+          var id = 'wr' + o.w;
+          g = '<clipPath id="' + id + '"><rect x="' + N(gx - 6) + '" y="' + N(y - big * 1.1) + '" width="' + N((x - gx + 12) * (a - 2) / 4) + '" height="' + N(big * 1.5) + '"/></clipPath>' +
+            '<g clip-path="url(#' + id + ')">' + g + '</g>';
+        }
+      }
+      return s + g;
+    }
+    /* the laptop's board: every input */
     function board(L) {
       var x0 = L.bx - L.bw / 2 + 34, top = L.bgy - L.bleg - L.bh, s = '';
       s += S.shadow(L.bx, L.bgy, L.bw * 0.7) + S.longShadow(L.bx, L.bgy, L.bw * 0.5, L.bleg + L.bh);
       s += S.cel(K.chalkboard({ x: L.bx, y: L.bgy, w: L.bw, h: L.bh, legH: L.bleg }));
-      var showFixed = st8.fixed && !st8.hideRC, rmShown = st8.hideST && st8.prev ? st8.prev.rm : st8.rm;
-      var lab = L.lab, big = L.big, y = top + 22, gap = 16, cr = C.cream;
-      function t(str, x, yy, size, fill, op) { return (op ? '<g opacity="' + op + '">' : '') + K.text(str, N(x), N(yy), { size: size, font: 'hand', fill: fill || cr, anchor: 'start' }) + (op ? '</g>' : ''); }
-      function head(str) { y += lab * 1.16; s += t(str, x0, y, lab, C.mustard); s += path('M' + N(x0) + ',' + N(y + 8) + ' h' + N(tw(str, lab) + 6), 'none', 3.5, ' opacity=".7"', C.mustard); y += 6; }
-      var xMax = L.bx + L.bw / 2 - 22;
-      function vals(x, o) {                                          // [struck old] [small word] big value
-        var need = (o.old ? tw(o.old, big) + gap : 0) + (o.pre ? tw(o.pre, lab) + 10 : 0) + tw(o.v, big) + (o.post ? tw(o.post, lab) + 10 : 0);
-        if (o.old && x + need > xMax) o.old = null;                   // no room: the struck figure gives way
-        if (o.old) {
-          var w0 = tw(o.old, big);
-          s += t(o.old, x, y, big, cr, 0.5) + path('M' + N(x - 4) + ',' + N(y - big * 0.3) + ' q' + N(w0 / 2) + ',-7 ' + N(w0 + 8) + ',3', 'none', 5, '', cr);
-          x += w0 + gap;
-        }
-        if (o.pre) { s += t(o.pre, x, y, lab, o.fill); x += tw(o.pre, lab) + 10; }
-        s += t(o.v, x, y, big, o.fill);
-        if (o.post) s += t(o.post, x + tw(o.v, big) + 10, y, lab, o.fill);
+      var lab = L.lab, big = L.big, y = top + 22, xMax = L.bx + L.bw / 2 - 22;
+      function head(str) { y += lab * 1.16; s += chalk(str, x0, y, lab, C.mustard); s += path('M' + N(x0) + ',' + N(y + 8) + ' h' + N(tw(str, lab) + 6), 'none', 3.5, ' opacity=".7"', C.mustard); y += 6; }
+      function row(id) {                                             // the figures shrink a little rather than drop the struck one
+        y += big * L.rowK; s += chalk(ROWLAB[id], x0, y, lab);
+        var xv = x0 + tw(ROWLAB[id], lab) + 16, k = Math.min(1, (xMax - xv) / valsW(rowVals(id, true), lab, big) * 0.98);
+        s += chalkVals(xv, y, rowVals(id), lab * k, big * k, xMax);
       }
-      function row(label, o) { y += big * L.rowK; s += t(label, x0, y, lab); vals(x0 + tw(label, lab) + gap, o); }
-      head('ANGLERS');
-      row('KEPT', showFixed ? { old: S.m(R.keptOld, 2), v: S.m(R.kept, 2) } : { v: S.m(R.keptOld, 2) });
-      row('RELEASED', showFixed ? { old: S.m(R.releasedOld, 1), v: S.m(R.released, 2) } : { v: S.m(R.releasedOld, 1) });
-      y += lab * 1.12; s += t('RELEASED FISH THAT DIE:', x0, y, lab);
-      y += big * (L.rowK - 0.04);
-      if (Math.abs(rmShown - RM_OLD) < 1e-6) vals(x0 + 20, { v: fmtP(RM_OLD), post: 'IN 100' });
-      else vals(x0 + 20, { old: fmtP(RM_OLD), pre: 'ABOUT', v: fmtP(rmShown), post: 'IN 100' });
-      y += 6; head('COMMERCIAL, NOT REVISED');
-      row('LANDED', { v: Math.round(R.commLandings * 1000) + 'K' });
-      row('THROWN BACK DEAD', Math.abs(st8.disc - DISC) < 1e-6 ? { v: fmtP(DISC), post: 'IN 100' } : { old: fmtP(DISC), v: fmtP(st8.disc), post: 'IN 100', fill: C.pink });
+      head('ANGLERS'); row('kept'); row('rel');
+      y += lab * 1.12; s += chalk(ROWLAB.rm, x0, y, lab);
+      y += big * (L.rowK - 0.04); s += chalkVals(x0 + 20, y, rowVals('rm'), lab, big, xMax);
+      y += 6; head('COMMERCIAL, NOT REVISED'); row('land'); row('disc');
       return s;
     }
+    /* the phone's board: only the line (or, for the recount, the two lines) that changes at this step, in chalk big
+       enough to read. It pops on when its line changes. */
+    function twoLine(id) { return id === 'rm' || id === 'disc'; }
+    function boardPhone(L) {
+      var ids = st8.pb; if (!ids || !ids.length) return '';
+      var LB = 58, BG = 98, P = L.pb, s = '', x0 = P.x - P.w / 2 + 34, xMax = P.x + P.w / 2 - 26, avail = xMax - x0, k = 1;
+      ids.forEach(function (id) {
+        var o = rowVals(id, true), need = twoLine(id) ? Math.max(tw(ROWLAB[id], LB), 20 + valsW(o, LB, BG)) : tw(ROWLAB[id], LB) + 16 + valsW(o, LB, BG);
+        k = Math.min(k, avail / need * 0.96);
+      });
+      var lab = LB * k, big = BG * k, hs = ids.map(function (id) { return twoLine(id) ? lab * 1.2 + big * 1.02 : big * 1.12; });
+      var tot = hs.reduce(function (a, b) { return a + b; }, 0), y = P.top + (P.h - tot) / 2 - 8;
+      var inner = S.shadow(P.x, P.gy, P.w * 0.7) + S.cel(K.chalkboard({ x: P.x, y: P.gy, w: P.w, h: P.h, legH: P.gy - P.top - P.h }));
+      ids.forEach(function (id, i) {
+        if (twoLine(id)) { y += lab * 1.2; inner += chalk(ROWLAB[id].replace(/:$/, ''), x0, y, lab); y += big * 1.02; inner += chalkVals(x0 + 20, y, rowVals(id), lab, big, xMax); }
+        else { y += big * 1.12; inner += chalk(ROWLAB[id], x0, y, lab); inner += chalkVals(x0 + tw(ROWLAB[id], lab) + 16 * k, y, rowVals(id), lab, big, xMax); }
+      });
+      var pa = st8.pbT >= 0 ? stage.drawing - st8.pbT : 99, pk = pa >= 0 && pa < 3 && !S.reduce ? [0.9, 1.05, 1][pa] : 1;
+      s += around(P.x, P.gy, pk, inner);
+      return s;
+    }
+    function boardRect(L) {                                          // the board's face, for the spotlight
+      if (L.port) { var P = L.pb; return st8.pb.length ? [P.x - P.w / 2 - 18, P.top - 18, P.w + 36, P.h + 36] : null; }
+      return null;
+    }
+
     /* the tide staff between the frames: the stacks' scale, in millions of fish */
     function staff(L) {
       var x = L.XT, w = L.port ? 82 : 90, yt = yLine(L, NA) - 30, yb = L.base + 6, s = '', d = '', dd = '';
@@ -175,6 +245,16 @@ SITE.register({
       }
       return s;
     }
+    /* a piece of the anglers' stack (levels lo..hi) as it sat in the stack, drawn around its own middle */
+    function pieceArt(L, lo, hi) {
+      var s = '', c = (yAt(L, lo) + yAt(L, hi)) / 2, bw = L.BW;
+      for (var i = Math.floor(lo); i < Math.ceil(hi - 1e-6); i++) {
+        var a = Math.max(lo, i), b = Math.min(hi, i + 1), y0 = yAt(L, b), y1 = yAt(L, a);
+        if (b - a < 0.03) continue;
+        s += rect(-bw / 2, y0 - c, bw, Math.max(3, y1 - y0), b - a > 0.3 ? 5 : 2, C.avocado, 5.5);
+      }
+      return { svg: s, h: yAt(L, lo) - yAt(L, hi), c: c };
+    }
     /* a name board standing on the frame's top bar on two short stakes */
     function nameBoard(L, x, top, str) {
       var w = tagW([str], L.tg) + 10, h = L.tg * 1.5, by = top - 26 - 22 - h, s = '';
@@ -197,6 +277,29 @@ SITE.register({
       s += '<rect x="' + N(-w / 2 + 10) + '" y="' + N(-h / 2 + 10) + '" width="' + N(w - 20) + '" height="' + N(h - 20) + '" rx="5" fill="none" stroke="' + C.brick + '" stroke-width="3"/>';
       s += K.text('BIGGER', 0, -4, { size: fs, font: 'label', fill: C.brick, spacing: 2 }) + K.text('SHARE', 0, fs * 0.92, { size: fs, font: 'label', fill: C.brick, spacing: 2 });
       return K.at(x, y, sc, -8, s);
+    }
+    /* the crate at Kit's feet (a new prop in the film's props' style: tan planks, brown corner posts, ink line,
+       cel-shaded), lettered with the same inked imprint as the stack: RECOUNT at the recount, RELEASE STUDY at the
+       release study. crateBack is the far wall's top edge over the rim; pieces falling in go between the two. */
+    function crateBack(L) { var w = L.CW, top = L.GY - L.CH; return rect(L.cx - w / 2 + 14, top - 14, w - 28, 22, 4, S.SH.brown, 5); }
+    function crateFront(L) {
+      var x = L.cx, w = L.CW, h = L.CH, y = L.GY, top = y - h, s = '', lbl = st8.crate, port = L.port;
+      s += rect(x - w / 2, top, w, h, 5, C.tan, 6);
+      s += path('M' + N(x - w / 2 + 20) + ',' + N(top + h * 0.5) + ' H' + N(x + w / 2 - 20), 'none', 4);
+      s += path('M' + N(x - w / 2 + 40) + ',' + N(top + h * 0.26) + ' q30,-5 60,0 M' + N(x + w / 2 - 110) + ',' + N(top + h * 0.78) + ' q30,5 60,0', 'none', 3, '', S.SH.tan);
+      s += rect(x - w / 2 - 6, top - 8, 28, h + 8, 4, C.brown, 5) + rect(x + w / 2 - 22, top - 8, 28, h + 8, 4, C.brown, 5);
+      s += path('M' + N(x - w / 2 + 8) + ',' + N(top + 10) + ' l0,0 M' + N(x - w / 2 + 8) + ',' + N(y - 12) + ' l0,0 M' + N(x + w / 2 - 8) + ',' + N(top + 10) + ' l0,0 M' + N(x + w / 2 - 8) + ',' + N(y - 12) + ' l0,0', 'none', 7);
+      var art = S.shadow(x, y, w * 1.05) + S.cel(s);
+      var ly = top + h * 0.52 + 2;
+      if (lbl === 1) art += imprint(['RECOUNT'], C.orange, port ? 48 : 44, x, ly - (port ? 22 : 20), -3);
+      else if (lbl === 2) art += imprint(['RELEASE', 'STUDY'], C.sea, port ? 44 : 40, x, ly, 2);
+      var ca = stage.drawing - st8.crateT, sa = stage.drawing - st8.sq;
+      if (st8.crateT >= 0 && ca >= 0 && ca < 5 && !S.reduce) art = around(x, y, S.pop(ca, 4), art);            // the crate pops on as Kit lands
+      else if (st8.sq >= 0 && sa === 0 && !S.reduce) art = '<g transform="translate(' + N(x) + ' ' + N(y) + ') scale(1.05 .93) translate(' + N(-x) + ' ' + N(-y) + ')">' + art + '</g>';
+      var wa = stage.drawing - st8.swapT;                            // the label swaps in a puff, like Kit's stamps
+      if (st8.swapT >= 0 && wa >= 0 && wa < 3 && !S.reduce) art += K.puff({ x: x, y: ly, r: (port ? 70 : 72) + wa * 10, seed: 6 });
+      if (st8.sq >= 0 && sa >= 0 && sa < 2 && !S.reduce) art += K.puff({ x: x - w * 0.22, y: top - 8, r: 26 + sa * 8, seed: 3 }) + K.puff({ x: x + w * 0.24, y: top - 12, r: 22 + sa * 8, seed: 5 });
+      return art;
     }
 
     /* ---------------- the roller shade on the ANGLERS frame (ported from s11) ---------------- */
@@ -245,16 +348,43 @@ SITE.register({
       return { svg: s + rollerBody(L), ring: [XA, ry] };
     }
 
+    /* ---------------- a piece in flight: off the stack, into the crate or into Kit's hands ---------------- */
+    function catchAt(L) {                                            // where Kit holds a caught piece (the middle of her cradling hands)
+      var kp = K.kidPoints({ pose: 'cradle', x: L.kd, y: L.GY, scale: L.KS });
+      return [(kp.near[0] + kp.far[0]) / 2 - 6, (kp.near[1] + kp.far[1]) / 2];
+    }
+    /* where the flying piece is: {x, y (its middle), rot, k (scale), inside (behind the crate's front)} */
+    function flyPos(L) {
+      var f = st8.fly; if (!f) return null;
+      var P = pieceArt(L, f.lo, f.hi), x0 = L.XA, y0 = P.c, mx = L.cx, my = L.GY - L.CH - P.h * 0.2, hand = catchAt(L), d = f.d;
+      if (d === 0) return { P: P, x: x0 - 6, y: y0 - 16, rot: -3, k: 1.08, lift: true };
+      var tx = f.last ? hand[0] : mx, ty = f.last ? hand[1] - P.h / 2 + 4 : my;
+      if (d <= 3) {
+        var t = d / 4, H = 150;
+        return { P: P, x: S.lerp(x0, tx, t), y: S.lerp(y0 - 16, ty, t) - 4 * H * t * (1 - t), rot: S.lerp(-3, f.last ? -8 : -24, t), k: 1, speed: true };
+      }
+      if (!f.last) return d === 4 ? { P: P, x: mx, y: my + P.h * 0.35, rot: -8, k: 1, inside: true } : null;
+      if (d <= 6) return { P: P, x: tx, y: ty + (d === 4 ? 6 : 0), rot: d === 4 ? -6 : -3, k: 1 };      // caught: held three drawings
+      if (d === 7) return { P: P, x: S.lerp(tx, mx, 0.6), y: S.lerp(ty, my, 0.6), rot: 6, k: 1 };
+      return d === 8 ? { P: P, x: mx, y: my + P.h * 0.35, rot: 3, k: 1, inside: true } : null;
+    }
+    function flyArt(L, q) {
+      var s = '<g transform="translate(' + N(q.x) + ' ' + N(q.y) + ') rotate(' + q.rot + ') scale(' + q.k + ')">' + q.P.svg + '</g>';
+      if (q.lift) s += K.impact({ x: L.XA - L.BW * 0.62, y: q.y + 6, r: 24, fill: C.white }) + K.impact({ x: L.XA + L.BW * 0.6, y: q.y - 4, r: 20, fill: C.avocado, spin: 0.5 });
+      if (q.speed) s += K.speedLines({ x: q.x + L.BW * 0.62, y: q.y - 8, rot: 0, len: 90, n: 3, gap: 22, w: 5 });
+      return s;
+    }
+
     /* ---------------- the stage ---------------- */
     var stage = api.stage(function (st) {
       var L = lay(st), port = L.port, dr = st.drawing, s = S.set.dock(st, { hz: L.hz, dock: L.dock, sun: !port }).svg;
       var aSolid = st8.dispL != null ? st8.dispL : lv(angM()), aGhost = Math.max(L_OLD, aSolid);
-      var capL = lv(discM()), qdragging = !!st8.qdrag;
+      var capL = lv(discM());
       s += gillnet(L, dr);
       var fl = (dr >> 1) % 2;                                          // two gulls over the pier, flapping on twos
       s += K.gull({ x: port ? 250 : 190, y: port ? 200 : 210 + L.dy * 0.35, scale: port ? 0.6 : 0.7, flap: fl }) + K.gull({ x: port ? 360 : 320, y: port ? 245 : 262 + L.dy * 0.35, scale: port ? 0.45 : 0.5, flap: 1 - fl });
       s += banner(L);
-      s += board(L);
+      s += port ? boardPhone(L) : board(L);
       s += staff(L);
 
       /* COMMERCIAL: landed blocks (brick), the dashed "?" cap for dead discards, NOT REVISED on its post */
@@ -263,17 +393,17 @@ SITE.register({
       s += rect(L.XC - bw / 2, yb2, bw, Math.max(4, ya - yb2), 5, C.pink, 5, ' fill-opacity=".45" stroke-dasharray="12 8"', C.brick);
       var capH = ya - yb2, qs = S.clamp(78 + capH * 0.3, 78, 124), qIn = capH > qs * 0.8, qy = qIn ? (ya + yb2) / 2 : yb2 - qs * 0.42;
       s += frameTop(L, L.XC, NC);
-      var qArt = K.qmark({ x: L.XC, y: qy + qs * 0.36, size: qs, color: C.brick, rot: 6 });
-      s += qArt;
+      s += K.qmark({ x: L.XC, y: qy + qs * 0.36, size: qs, color: C.brick, rot: 6 });
       if (st8.ghost90) {
         var yg = yAt(L, L_LAND + lv(R.commLandings * DISC90 / 100)), ga = age90();
         if (ga > 0) {
           var gy = S.lerp(ya, yg, Math.min(1, ga / 6));
           s += rect(L.XC - bw / 2 - 8, gy, bw + 16, ya - gy, 6, 'none', 6, ' stroke-dasharray="14 10"', C.brick);
-          if (ga >= 6) s += hang(L.XC - bw / 2 - 8, gy + 8, { x: L.XC - (port ? 150 : 200), y: gy - (port ? 70 : 70), w: tagW(['1990s ESTIMATE:', '80 IN 100'], L.tg * 0.8), h: L.tg * 0.8 * 2.4 + 26, band: C.brick, rot: -3, lines: ['1990s ESTIMATE:', '80 IN 100'], size: L.tg * 0.8 });
+          if (ga >= 6) s += hang(L.XC - bw / 2 - 8, gy + 8, { x: L.XC - (port ? 150 : 200), y: gy - 70, w: tagW(['1990s ESTIMATE:', '80 IN 100'], L.tg * 0.8), h: L.tg * 0.8 * 2.4 + 26, band: C.brick, rot: -3, lines: ['1990s ESTIMATE:', '80 IN 100'], size: L.tg * 0.8 });
         }
       }
-      if (!(port && st8.say && st8.sayUntil > Date.now())) {
+      var hint = st8.turn && !st8.tried;
+      if (!(port && (st8.say || st8.kq || hint))) {
         var rl = port ? ['TOP', 'RESEARCH', 'PRIORITY'] : ['TOP RESEARCH', 'PRIORITY'], rtx = port ? 968 : L.XC + 330, rty = port ? 800 + L.dy : yAt(L, L_LAND) - 16;
         s += hang(L.XC + qs * 0.32, qy - qs * 0.1, { x: rtx, y: rty, w: tagW(rl, L.tg), h: L.tg * (rl.length * 1.15 + 0.05) + 30, band: C.brick, rot: 2, lines: rl, size: L.tg });
       }
@@ -281,78 +411,88 @@ SITE.register({
       var nrw = tagW(['NOT REVISED'], L.tg);
       s += hang(L.XC, port ? L.base - 2 : L.GY - L.PH + 6, { x: L.XC + (port ? 26 : 30), y: L.GY - L.PH + (port ? 20 : 42), w: nrw, h: L.tg * 1.5 + 20, band: C.brick, rot: -2, lines: ['NOT REVISED'], size: L.tg });
 
-      /* ANGLERS: kept + released that die (avocado); the corrected-away blocks turn to gray ghosts */
+      /* ANGLERS: kept + released that die (avocado); the corrected-away blocks leave gray ghosts behind */
       s += frameWood(L, L.XA, NA) + blocks(L, L.XA, aSolid, aGhost, C.avocado);
-      if (st8.puff != null) s += K.puff({ x: L.XA + 10, y: yAt(L, st8.puff + 0.5), r: port ? 44 : 50, seed: Math.floor(st8.puff) + 2 });
       s += frameTop(L, L.XA, NA);
-      var showRC = st8.fixed && !st8.hideRC, showST = Math.abs(st8.rm - RM_NEW) < 1e-6 && !st8.hideST && aSolid < L_FIX - 0.1;
-      if (showRC && aSolid < L_OLD - 0.5) s += imprint(['RECOUNT'], C.orange, port ? 48 : 44, L.XA + 4, yAt(L, impAt(Math.min(L_OLD, Math.max(aSolid, L_FIX)), L_OLD, 1)), -3);
-      if (showST) s += imprint(['RELEASE', 'STUDY'], C.sea, port ? 44 : 40, L.XA + 6, yAt(L, impAt(aSolid, L_FIX, 2)), 2);
+      var showRC = st8.fixed && !st8.hideRC, showST = Math.abs(st8.rm - RM_NEW) < 1e-6 && !st8.hideST;
+      if (showRC) s += imprint(['RECOUNT'], C.orange, port ? 48 : 44, L.XA + 4, L.imp[0], -3);
+      if (showST) s += imprint(['RELEASE', 'STUDY'], C.sea, port ? 44 : 40, L.XA + 6, L.imp[1], 2);
       // the notches the shade stops at (brick teeth on the frame's right edge)
       [L_FIX, L_ST].forEach(function (l) {
         var yy = yAt(L, l), xr = L.XA + L.pw / 2 + 16;
         s += path('M' + N(xr + 2) + ',' + N(yy - 14) + ' L' + N(xr - 16) + ',' + N(yy) + ' L' + N(xr + 2) + ',' + N(yy + 14) + ' Z', C.brick, 4);
       });
-      // the shade: pulled down while you drag (or while a button pulls it), snapping up and spinning on release
+      // the shade: pulled down by the step, snapping up and spinning on release
       var sh = '', ringAt;
-      if (st8.drag) { var sd = shadeDown(L, st8.drag.hem); sh += sd.svg; ringAt = sd.ring; }
-      else if (st8.pull != null) { var sp = shadeDown(L, S.lerp(L.RY + 30, yAt(L, st8.pullL), st8.pull)); sh += sp.svg; ringAt = sp.ring; }
+      if (st8.pull != null) { var sp = shadeDown(L, S.lerp(L.RY + 30, yAt(L, st8.pullL), st8.pull)); sh += sp.svg; ringAt = sp.ring; }
       else if (st8.spin === 0) { var s0 = shadeDown(L, S.lerp(L.RY + 30, yAt(L, st8.snapL), 0.45)); sh += s0.svg; ringAt = s0.ring; sh += K.speedLines({ x: L.XA - 50, y: L.RY + 40, rot: 90, len: 120, n: 3, gap: 50, w: 5 }); }
-      else { var ro = roller(L, st8.spin > 0 ? st8.spin - 1 : null); sh += ro.roller + ro.ring; ringAt = ro.at; }
+      else { var ro = roller(L, st8.spin > 0 ? st8.spin - 1 : null); sh += ro.roller + ro.ring; }
       s += sh;
       s += nameBoard(L, L.XA + (port ? 84 : 70), L.topA, 'ANGLERS');
 
-      /* the stepladder and Kit with the stamp */
-      s += ladder(L) + kit(L, st, ringAt);
+      /* the stepladder, Kit, and the crate at her feet (the pieces fall in between its far wall and its front) */
+      var q = flyPos(L);
+      s += ladder(L) + kit(L, st);
+      if (st8.crate) s += crateBack(L) + (q && q.inside ? flyArt(L, q) : '') + crateFront(L);
+      if (q && !q.inside) s += flyArt(L, q);
 
-      /* the Striper: points at commercial; shrugs as the "?" grows */
-      var raised = st8.disc > DISC + 0.05;
-      var so = { x: L.SX, y: L.GY + 6, scale: L.SS, flip: true, pose: raised ? 'shrug' : 'point', expr: raised ? 'sheepish' : 'kind', look: raised ? 'cam' : [1, 0.15], blink: (dr % 44) === 7 };
+      /* the Striper: points at commercial; shrugs as the "?" grows; surprised the first time the reader lands on the 1990s estimate */
+      var raised = st8.disc > DISC + 0.05, surpr = st8.surp >= 0 && (S.reduce ? Math.abs(st8.disc - DISC90) < 1e-6 : dr - st8.surp < 12);
+      var so = { x: L.SX, y: L.GY + 6, scale: L.SS, flip: true, pose: raised ? 'shrug' : 'point', expr: surpr ? 'surprised' : raised ? 'sheepish' : 'kind', look: raised || surpr ? 'cam' : [1, 0.15], blink: !surpr && (dr % 44) === 7 };
       if (st8.talk >= 0) { so.pose = 'point'; so.expr = 'talk'; so.look = [1, 0.1]; so.mouth = st8.talk % 3 === 2 ? 'closed' : 'open'; }
+      else if (st8.ktalk >= 0) so.look = [1, 0.3];
+      else if (!surpr) {
+        so.squash = S.breath(st);
+        if (st8.turn) { var slk = S.lookAt(stage, K.striperPoints(so).eye, so.flip); if (slk) so.look = slk; }
+      }
       s += S.shadow(L.SX, L.GY + 6, 250 * L.SS) + K.striper(so);
 
       s += spotlight(L);
-      /* the payoff: BIGGER SHARE lands on the commercial frame */
+      /* the payoff: BIGGER SHARE lands on the commercial frame; Kit asks, the Striper answers (the film at 2:40) */
       var aDown = lv(angM()) < L_OLD - 0.5;
-      if (st8.paid && aDown && st8.pay > 0) {
+      if (st8.paid && aDown && st8.pay > 0 && !(port && st8.ghost90)) {          // (on a phone the 1990s tag needs its room)
         var seqS = [1.9, 0.9, 1.07, 1], sc = st8.pay >= 99 ? 1 : seqS[Math.min(3, st8.pay - 1)];
         var bx = L.XC, by = L.topC + (port ? 64 : 70);
         if (st8.pay < 4) s += K.impact({ x: bx - 150, y: by - 30, r: 34, fill: C.white }) + K.impact({ x: bx + 150, y: by + 20, r: 30, fill: C.brick, spin: 0.5 });
         s += bigStamp(bx, by, port ? 48 : 44, sc);
-        if (st8.say && (!port || st8.sayUntil > Date.now())) {
-          var sp2 = K.striperPoints({ x: L.SX, y: L.GY + 6, scale: L.SS, flip: true, pose: 'point' });
-          s += port ? S.say('Same commercial count. Smaller anglers’ count.', 800, 560 + L.dy, 470, sp2.nose[0] - 10, sp2.nose[1] + 6, { size: 44 })
-            : S.say('Same commercial count. Smaller anglers’ count.', 1758, 470 + L.dy, 316, sp2.nose[0] - 10, sp2.nose[1] + 8, { size: 40 });
-        }
       }
-      /* the hint, until the shade has been tried: a tag on the ring and a dashed arrow down to the first notch */
-      if (!st8.tried && !st8.drag) {
-        var hx = L.XA + L.pw / 2 + (port ? 34 : 44), y1 = yAt(L, L_FIX);
-        s += path('M' + N(hx) + ',' + N(L.RY + 30) + ' L' + N(hx) + ',' + N(y1 - 10), 'none', 7, ' stroke-dasharray="16 12"', C.brick) + path('M' + N(hx - 18) + ',' + N(y1 - 30) + ' L' + N(hx) + ',' + N(y1 - 6) + ' L' + N(hx + 18) + ',' + N(y1 - 30), 'none', 7, '', C.brick);
-        var pl = ['PULL', 'DOWN'];
-        s += hang(ringAt[0], ringAt[1] + 14, { x: ringAt[0] + (port ? -70 : 4), y: ringAt[1] + (port ? 100 : 92), w: tagW(pl, port ? 44 : 40), h: (port ? 44 : 40) * 2.3 + 26, band: C.mustard, rot: 4, lines: pl, size: port ? 44 : 40 });
+      if (st8.kq) {
+        var kh = K.kidPoints({ pose: 'stamp', x: L.kd, y: L.GY, scale: L.KS });
+        s += port ? S.say('So commercial didn’t go up?', 140, 625, 264, kh.top[0] + 30, kh.top[1] + 20, { size: 40 })
+          : S.say('So commercial didn’t go up?', 196, 470 + L.dy, 340, kh.top[0] + 40, kh.top[1] + 24, { size: 40 });
+      }
+      if (st8.say) {
+        var sp2 = K.striperPoints({ x: L.SX, y: L.GY + 6, scale: L.SS, flip: true, pose: 'point' });
+        s += port ? S.say('Nope. The anglers’ side came down.', 800, 560 + L.dy, 470, sp2.nose[0] - 10, sp2.nose[1] + 6, { size: 44 })
+          : S.say('Nope. The anglers’ side came down.', 1758, 470 + L.dy, 316, sp2.nose[0] - 10, sp2.nose[1] + 8, { size: 40 });
+      }
+      /* the hint in the reader's turn, until the slider moves: a tag over the Striper, bobbing on twos, pointing down
+         to the slider under the picture */
+      if (hint) {
+        var hb = (dr >> 1) % 2 ? 6 : 0, hl = ['SLIDE THE', 'BOBBER'], hs = port ? 40 : 36, hw = tagW(hl, hs), hx = port ? 952 : Math.min(L.W - hw / 2 - 14, L.SX + 6), hy = (port ? 790 : 470 + L.dy) + hb;
+        s += S.tag({ x: hx, y: hy, w: hw, h: hs * 2.3 + 30, band: C.mustard, fill: C.mustard, rot: -3, lines: hl, size: hs });
+        var ay = hy + hs * 1.15 + 30;
+        s += path('M' + N(hx - 22) + ',' + N(ay) + ' L' + N(hx) + ',' + N(ay + 26) + ' L' + N(hx + 22) + ',' + N(ay) + ' Z', C.brick, 5);
       }
       return s;
     }, function () {
-      var a = angM(), a0 = angM(PRE[0]);
-      return 'Stripers killed by fishing in 2025, drawn as blocks of 250,000 fish. Anglers: ' + r2(a) + ' million' + (a < a0 - 0.01 ? ', down from ' + r2(a0) + ' million in the old numbers (the gray ghost blocks)' : '') +
-        '. Commercial: ' + Math.round(R.commLandings * 1000) + ',000 landed, not revised, plus about ' + Math.round(discM() * 1000) + ',000 thrown back dead (the dashed question mark).';
+      var a = angM(), a0 = A_OLD;
+      return 'Stripers killed by fishing in 2025, drawn as blocks of 250,000 fish. Anglers: ' + r2(a) + ' million' + (a < a0 - 0.01 ? ', down from ' + r2(a0) + ' million in the old count (the gray ghost blocks; the blocks that came off are in the crate at Kit’s feet)' : '') +
+        '. Commercial: ' + r2(R.commLandings) + ' million landed, not revised, plus about ' + Math.round(discM() * 1000) + ',000 thrown back dead (the dashed question mark).';
     });
     function r2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
     var g90 = -1;
-    function age90() { return g90 < 0 ? 99 : Math.floor((performance.now() - g90) / (1000 / 12)); }
-    /* the spotlight: the anglers' stack (with Kit's ladder) and its rows on the board, or the commercial side */
+    function age90() { return g90 < 0 ? 99 : stage.drawing - g90; }
+    /* the spotlight (SITE.spot): the anglers' stack with Kit, her ladder and her crate, and their rows on the board;
+       or the commercial side and its rows */
     function spotlight(L) {
       var f = st8.focus; if (!f) return '';
-      var btop = L.bgy - L.bleg - L.bh, rs;
-      if (f === 'anglers') rs = [[L.kd - 120, L.topA - 110, L.XA + L.pw / 2 + 50 - (L.kd - 120), L.GY - L.topA + 140], [L.bx - L.bw / 2 - 16, btop - 16, L.bw + 32, L.bh * 0.58]];
-      else rs = [[L.XC - L.pw / 2 - 60, L.topC - 110, L.pw + 120 + (L.port ? 120 : 330), L.GY - L.topC + 140], [L.bx - L.bw / 2 - 16, btop + L.bh * 0.55, L.bw + 32, L.bh * 0.5]];
-      var op = st8.fz >= 0 ? S.clamp(0.14 * age90f(), 0.14, 0.42) : 0.42, W = L.W + 40, H = L.H + 40;
-      return '<mask id="rmSpot" maskUnits="userSpaceOnUse" x="-20" y="-20" width="' + W + '" height="' + H + '"><rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="#fff"/>' +
-        rs.map(function (r) { return '<rect x="' + N(r[0]) + '" y="' + N(r[1]) + '" width="' + N(r[2]) + '" height="' + N(r[3]) + '" rx="30" fill="#000"/>'; }).join('') + '</mask>' +
-        '<rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="' + INK + '" opacity="' + op + '" mask="url(#rmSpot)"/>';
+      var btop = L.bgy - L.bleg - L.bh, rs, pb = boardRect(L), x0 = Math.min(L.kd - 120, L.cx - L.CW / 2 - 16);
+      if (f === 'anglers') rs = [[x0, L.topA - 110, L.XA + L.pw / 2 + 50 - x0, L.GY - L.topA + 140], L.port ? pb : [L.bx - L.bw / 2 - 16, btop - 16, L.bw + 32, L.bh * 0.58]];
+      else { var gx = st8.ghost90 && !L.port ? 150 : 0; rs = [[L.XC - L.pw / 2 - 60 - gx, L.topC - 110, L.pw + 120 + gx + (L.port ? 120 : 330), L.GY - L.topC + 140], L.port ? pb : [L.bx - L.bw / 2 - 16, btop + L.bh * 0.55, L.bw + 32, L.bh * 0.5]]; }
+      var d = st8.fz >= 0 ? stage.drawing - st8.fz - 1 : 99;
+      return S.spot(L.W, L.H, rs.filter(Boolean), d >= 0 && d < 3 ? [0.33, 0.67, 0.9][d] : 1, 30);
     }
-    function age90f() { return Math.floor((performance.now() - st8.fz) / (1000 / 12)) + 1; }
 
     function ladder(L) {                                             // front view, rungs where Kit stands for each stamp
       var x = L.lx, cap = L.rung[0] - 34 * L.KS / 0.8, k = L.KS / 0.8, s = '';
@@ -362,10 +502,11 @@ SITE.register({
       for (var y = L.rung[1] + 80 * k; y < L.GY - 30; y += 80 * k) s += rect(x - 50 * k, y, 100 * k, 12, 4, C.tan, 5);
       return s;
     }
-    /* Kit: waits on the dock, hops onto the ladder to stamp each correction, and hops back down */
+    /* Kit: waits on the dock, hops onto the ladder to stamp each correction, hops back down, watches the blocks come
+       off into her crate and catches the last one */
     function spot(L, at) { return at === 'dock' ? [L.kd, L.GY] : at === 'r1' ? [L.lx, L.rung[1]] : [L.lx, L.rung[0]]; }
     function restColor() { return st8.fixed ? C.sea : C.orange; }
-    function kit(L, st, ringAt) {
+    function kit(L, st) {
       var k = st8.kit, col = k ? k.col : restColor(), at = k ? k.at : 'dock', p0 = spot(L, at);
       var o = { x: p0[0], y: p0[1], scale: L.KS, blink: (st.drawing % 40) === 3 }, fx = '', sh = at === 'dock';
       function raised(c) { return K.stamp({ x: 10, y: 127, scale: 0.8, label: PLATE, color: c }); }
@@ -384,17 +525,21 @@ SITE.register({
         fx += K.speedLines({ x: L.XA + 40, y: iy - 90, rot: -90, len: 80, n: 2, gap: 70, w: 5 });
       } else if (k && (k.mode === 'windup' || k.mode === 'up')) {      // the stamp held high, clear of her face and the blocks
         o.pose = 'cheer'; o.hold = raised(col); o.look = [0.5, 0.9]; o.expr = k.mode === 'up' ? 'grin' : 'eager';
-        if (k.hop >= 0) { var q = Math.min(1, (k.hop + 1) / 3); o.y = S.lerp(L.rung[0], L.rung[1], q) - Math.sin(q * Math.PI) * 26; o.expr = k.hop < 2 ? 'wide' : 'eager'; }
+        if (k.puff >= 0) { o.expr = 'eager'; }
         if (k.mode === 'up' && k.d === 0) o.y -= 8;
-      } else if (!st8.tried && ringAt) {                              // before anyone has tried: she points up at the pull ring
-        var sx = o.x + 48 * L.KS, sy = o.y - 304 * L.KS;
-        o.pose = 'point'; o.aim = S.clamp(Math.atan2(ringAt[1] - sy, ringAt[0] - sx) * 180 / Math.PI, -80, 10); o.expr = 'eager'; o.look = [0.7, -0.8];
+      } else if (k && k.mode === 'watch') {                           // on the dock, watching the blocks come off
+        o.pose = 'stamp'; o.stampLabel = PLATE; o.stampColor = col; o.expr = 'eager'; o.look = [0.9, -0.6];
+      } else if (k && k.mode === 'catch') {                           // the last block in both hands
+        o.pose = 'cradle'; o.expr = k.e; o.look = [0.4, 0.7];
+        if (k.e === 'wide') o.squash = 0.06;
       } else {                                                        // on the dock, stamp in hand
         o.pose = 'stamp'; o.stampLabel = PLATE; o.stampColor = col; o.look = [0.6, -0.6];
         o.expr = st8.paid && lv(angM()) < L_OLD - 0.5 ? 'grin' : 'eager';
-        if (st8.drag) o.expr = 'wide';
         if (st8.disc > DISC + 0.05) { o.expr = 'wide'; o.look = [1, 0]; }
         if (st8.pay > 0 && st8.pay < 6) o.expr = 'wide';
+        if (st8.ktalk >= 0) { o.expr = 'talk'; o.mouth = st8.ktalk % 3 === 2 ? 'closed' : 'open'; o.look = [1, -0.2]; }
+        else if (st8.kq) o.look = [1, -0.1];
+        else if (st8.turn) { var lk = S.lookAt(stage, K.kidPoints(o).eye, o.flip); if (lk) o.look = lk; }
       }
       var s = (sh ? S.shadow(o.x, L.GY, 170 * L.KS) : '') + K.kid(o) + fx;
       if (k && k.puff >= 0) {                                         // swap stamps in a puff at the raised stamp
@@ -411,100 +556,120 @@ SITE.register({
       stage.play(total, function (d) {
         var t = d;
         for (var i = 0; i < seq.length; i++) { if (t < seq[i].n || i === seq.length - 1) { seq[i].f(Math.min(t, seq[i].n - 1)); break; } t -= seq[i].n; }
-      }, function () { settle(); if (done) done(); });
+      }, function () { settle(); stage.render(); show(); if (done) done(); });
     }
     function settle() {                                              // clear every in-between state
-      st8.busy = false; st8.kit = null; st8.dispL = null; st8.puff = null; st8.spin = -1; st8.pull = null; st8.drag = null;
-      st8.hideRC = false; st8.hideST = false; st8.talk = -1; st8.prev = null; st8.cardState = null; if (st8.paid) st8.pay = 99;
-      stage.render(); show();
+      st8.busy = false; st8.kit = null; st8.dispL = null; st8.spin = -1; st8.pull = null; st8.fly = null;
+      st8.hideRC = false; st8.hideST = false; st8.talk = -1; st8.ktalk = -1; st8.prev = null; st8.cardState = null; if (st8.paid) st8.pay = 99;
     }
-    /* go to a preset: the shade pulls down and snaps up, Kit stamps each correction that is new, and the blocks
-       it covers ghost one per drawing from the top down */
+    /* the pieces a correction takes off the stack, top down, one block (or the part of one) at a time; a sliver under
+       a third of a block goes with the piece above it */
+    function pieces(from, to) {
+      var out = [], hi = from;
+      while (hi > to + 1e-6) { var lo = Math.max(to, Math.ceil(hi - 1e-6) - 1); out.push([lo, hi]); hi = lo; }
+      for (var i = out.length - 1; i > 0; i--) if (out[i][1] - out[i][0] < 0.34) { out[i - 1][0] = out[i][0]; out.splice(i, 1); }
+      return out;
+    }
+    /* a correction (b = 1 the recount, 2 the release study): the shade pulls down to its notch and snaps up, Kit
+       stamps the band, hops down, the crate lands at her feet (or relabels), and the blocks lift off one at a time
+       on twos with a small pop and drop into it. Kit catches the last one and drops it in. */
     function go(b) {
       if (st8.busy) { stage.animate(0); settle(); }
-      var P = { fixed: st8.fixed, rm: st8.rm }, T = PRE[b], Lp = lv(angM(P)), Lt = lv(angM(T));
-      var needRC = T.fixed && !P.fixed, needST = Math.abs(T.rm - RM_NEW) < 1e-6 && Math.abs(P.rm - RM_NEW) > 1e-6;
-      st8.prev = P; st8.fixed = T.fixed; st8.rm = T.rm; st8.disc = DISC; st8.say = false; st8.cardState = P; show();
-      var stamps = [];
-      if (Lt < Lp - 0.01) {
-        if (needRC) stamps.push({ k: 1, col: C.orange, from: Lp, to: needST ? lv(angM({ fixed: true, rm: P.rm })) : Lt, rung: 0 });
-        if (needST) stamps.push({ k: 2, col: C.sea, from: stamps.length ? stamps[0].to : Lp, to: Lt, rung: 1 });
-      }
-      st8.hideRC = stamps.some(function (x) { return x.k === 1; }); st8.hideST = stamps.some(function (x) { return x.k === 2; });
-      st8.dispL = Lp;
+      var P = { fixed: st8.fixed, rm: st8.rm }, T = PRE[b], Lp = lv(angM(P)), Lt = lv(angM(T)), k1 = b === 1;
+      var col = k1 ? C.orange : C.sea, at = k1 ? 'r0' : 'r1', ps = pieces(Lp, Lt);
+      st8.prev = P; st8.fixed = T.fixed; st8.rm = T.rm; st8.disc = DISC; st8.say = false; st8.kq = false; st8.cardState = P;
+      if (k1) st8.hideRC = true; else st8.hideST = true;
+      st8.dispL = Lp; show();
       var seq = [];
-      if (stamps.length) {
-        seq.push({ n: 3, f: function (d) { st8.pull = (d + 1) / 3; st8.pullL = Lt; } });
-        seq.push({ n: 7, f: function (d) { st8.pull = null; st8.spin = d; st8.snapL = Lt; } });
-      }
-      stamps.forEach(function (sp, i) {
-        var nb = Math.ceil(sp.from - sp.to - 1e-6), at = sp.rung ? 'r1' : 'r0';
-        if (i === 0) seq.push({ n: 2, f: function (d) { st8.spin = -1; st8.kit = { mode: 'hop', from: 'dock', to: at, p: (d + 1) / 2, col: sp.col, at: at }; } });
-        seq.push({ n: i ? 3 : 2, f: function (d) { st8.spin = -1; st8.kit = { mode: 'windup', at: at, col: sp.col, hop: i > 0 ? d : -1, puff: i > 0 ? d : -1 }; } });
-        seq.push({ n: 1, f: function () { st8.kit = { mode: 'slam', at: at, col: sp.col }; if (sp.k === 1) st8.hideRC = false; else st8.hideST = false; st8.cardState = null; show(); } });
-        seq.push({ n: nb + 2, f: function (d) { st8.kit = { mode: 'up', at: at, col: sp.col, d: d }; st8.dispL = Math.max(sp.to, sp.from - d); st8.puff = d > 0 && d <= nb ? st8.dispL : null; } });
-        if (i === stamps.length - 1) seq.push({ n: 2, f: function (d) { st8.puff = null; st8.kit = { mode: 'hop', from: at, to: 'dock', p: (d + 1) / 2, col: sp.col, at: 'dock' }; } });
+      seq.push({ n: 3, f: function (d) { st8.pull = (d + 1) / 3; st8.pullL = Lt; } });
+      seq.push({ n: 7, f: function (d) { st8.pull = null; st8.spin = d; st8.snapL = Lt; } });
+      seq.push({ n: 2, f: function (d) { st8.spin = -1; st8.kit = { mode: 'hop', from: 'dock', to: at, p: (d + 1) / 2, col: col, at: at }; } });
+      seq.push({ n: 2, f: function () { st8.kit = { mode: 'windup', at: at, col: col, puff: -1 }; } });
+      seq.push({ n: 1, f: function () {
+        st8.kit = { mode: 'slam', at: at, col: col };
+        if (k1) { st8.hideRC = false; st8.wr.kept = st8.wr.rel = stage.drawing; } else { st8.hideST = false; st8.wr.rm = stage.drawing; }
+        st8.cardState = null; show();
+      } });
+      seq.push({ n: 2, f: function (d) { st8.kit = { mode: 'up', at: at, col: col, d: d, puff: -1 }; } });
+      seq.push({ n: 2, f: function (d) {
+        st8.kit = { mode: 'hop', from: at, to: 'dock', p: (d + 1) / 2, col: col, at: 'dock' };
+        if (d === 1) { if (k1) { st8.crate = 1; st8.crateT = stage.drawing; } else { st8.crate = 2; st8.swapT = stage.drawing; } }
+      } });
+      ps.forEach(function (pc, i) {
+        var last = i === ps.length - 1;
+        seq.push({ n: last ? 10 : 6, f: function (d) {
+          st8.fly = { lo: pc[0], hi: pc[1], d: d, last: last }; st8.dispL = pc[0];
+          if (last && d >= 4 && d <= 7) st8.kit = { mode: 'catch', at: 'dock', col: col, e: d === 4 ? 'wide' : 'grin' };
+          else st8.kit = last && d > 7 ? null : { mode: 'watch', at: 'dock', col: col };
+          if ((!last && d === 5) || (last && d === 9)) { st8.fly = null; st8.sq = stage.drawing; }
+        } });
       });
-      if (!seq.length) seq.push({ n: 1, f: function () {} });
       run(seq);
     }
-    /* same commercial count, smaller anglers' count: BIGGER SHARE lands, and the Striper says so */
+    /* commercial didn't go up: BIGGER SHARE lands, Kit asks and the Striper answers, in the film's words */
     function payoff() {
       if (st8.busy) { stage.animate(0); settle(); }
       run([{ n: 6, f: function (d) { st8.paid = true; st8.pay = d + 1; } },
-        { n: 18, f: function (d) { st8.pay = 99; st8.say = true; st8.sayUntil = Date.now() + 7000; st8.talk = d < 16 ? d : -1; } }], sayNow);
-    }
-    function sayNow() {                                             // the Striper's line (on phones it clears after a few seconds)
-      st8.say = true; st8.sayUntil = Date.now() + 6500; stage.render();
-      clearTimeout(st8.sayT); st8.sayT = setTimeout(function () { stage.render(); }, 6600);
+        { n: 14, f: function (d) { st8.pay = 99; st8.kq = true; st8.ktalk = d < 12 ? d : -1; } },
+        { n: 16, f: function (d) { st8.ktalk = -1; st8.say = true; st8.talk = d < 14 ? d : -1; } }]);
     }
 
     /* ---------------- the walkthrough ---------------- */
     var STEPS = [
-      { focus: null, cls: 'first', h: '<p>Every striper that dies from fishing counts. On the left, the fish anglers kill: the ones they keep, and released fish that die. On the right, commercial fishing: fish landed, and fish thrown back dead. Each block is <b>250,000 stripers</b>, the same in both stacks.</p><p>All the numbers are for <b>2025</b>, coastwide. Under the picture, the two sides add up to every striper killed by fishing that year.</p>' },
-      { focus: 'anglers', h: '<p><b>Anglers, in the old numbers for 2025:</b> 1.42 million stripers kept and 11.8 million released. The assessment assumes 9 in 100 released fish die. Altogether, <b class="num">2.48 million</b> killed.</p>' },
-      { focus: 'comm', h: '<p><b>Commercial:</b> 543,000 stripers landed, plus fish thrown back dead, estimated at 2.8 for every 100 landed. Altogether, about <b class="num">0.56 million</b> killed. The recount didn’t change these numbers.</p>' },
-      { focus: 'anglers', h: '<p><b>The recount</b> lowers the anglers’ numbers to 1.14 million kept and 9.24 million released. Anglers’ kills drop to <b class="num">1.97 million</b>.</p>' },
-      { focus: 'anglers', h: '<p><b>A new study</b> by Micah Dean of the Massachusetts Division of Marine Fisheries found that about half as many released stripers die: roughly 4.5 in 100, not 9. If the assessment uses it, anglers’ kills drop to <b class="num">1.56 million</b>.</p>' },
-      { focus: null, h: '<p><b>Same commercial count, smaller anglers’ count.</b> Commercial fishing is a bigger part of the stripers killed than the old numbers showed.</p>' },
-      { focus: 'comm', h: '<p><b>And the question mark.</b> The commercial discard figure comes from tagged fish that commercial fishermen report. In the 1990s the same kind of estimate put it as high as <b class="num">80 for every 100</b> landed. The assessment scientists made it their top research priority.</p>' },
-      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>The commercial discard figure is uncertain. Slide it from today’s estimate toward the 1990s one and watch the commercial stack.</p>' }
+      { focus: null, cls: 'first', h: '<p><b>Every striper that dies from fishing counts:</b> the fish kept, and released fish that don’t survive. Anglers are on the left, commercial fishing on the right. All the numbers are for 2025, coastwide.</p>' },
+      { focus: null, h: '<p>Each block is <b class="num">250,000</b> stripers, the same in both stacks.</p>' },
+      { focus: 'anglers', h: '<p><b>Anglers, in the old count:</b> <b class="num">' + mil(A_OLD) + '</b> stripers killed. That’s the fish they kept, plus the released fish the assessment assumes die, 9 in every 100.</p>' },
+      { focus: 'comm', h: '<p><b>Commercial:</b> about <b class="num">' + mil(C_NOW) + '</b> killed, fish landed plus fish thrown back dead. The recount didn’t touch these numbers.</p>' },
+      { focus: 'anglers', h: '<p><b>The recount</b> found fewer stripers kept and fewer released. That trims the anglers’ side to <b class="num">' + mil(A_FIX) + '</b>.</p>' },
+      { focus: 'anglers', h: '<p><b>A new study</b> by Micah Dean of the Massachusetts Division of Marine Fisheries found that about half as many released stripers die as the old 9 in 100 assumed, and the rate depends on fish size.</p>' },
+      { focus: 'anglers', h: '<p>At about 4.5 in 100, anglers’ kills drop to <b class="num">' + mil(A_ST) + '</b>, if the assessment uses it.</p>' },
+      { focus: null, h: '<p><b>Same commercial count, smaller anglers’ count.</b> So commercial fishing is a bigger part of the stripers killed than the old count showed.</p>' },
+      { focus: 'comm', h: '<p><b>And the question mark.</b> The commercial discard figure comes from tagged fish that fishermen report. In the 1990s it ran as high as <b class="num">80 for every 100</b> landed. Scientists made it a top research priority.</p>' },
+      { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>The commercial discard figure is uncertain. Slide it from today’s estimate up to the 1990s one and watch the commercial stack.</p>' }
     ];
     var PLAY = STEPS.length - 1, OUTRO = STEPS.length;
+    // the phone's board at each step: only the line that changes (none where nothing on it does)
+    var PB = [[], [], ['rm'], ['disc'], ['kept', 'rel'], ['rm'], ['rm'], [], ['disc'], ['disc']];
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
-    function focus(f) { if (f !== st8.focus) { st8.focus = f; st8.fz = performance.now(); } }
-    /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion) */
-    function snap(n) {
+    function focus(f) { if (f !== st8.focus) { st8.focus = f; st8.fz = stage.drawing; } }
+    function board_(n, pop) {
+      var ids = PB[Math.min(n, PB.length - 1)];
+      if (ids.join() !== st8.pb.join()) { st8.pb = ids.slice(); st8.pbT = pop && ids.length ? stage.drawing + 1 : -99; }
+    }
+    /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion); quiet: set it up
+       without drawing, because the next step's entrance draws it */
+    function snap(n, quiet) {
       if (st8.busy) { stage.animate(0); }
-      st8.busy = false;
-      st8.fixed = n >= 3; st8.rm = n >= 4 ? RM_NEW : RM_OLD; st8.disc = DISC;
-      st8.paid = n >= 5; st8.pay = n >= 5 ? 99 : 0; st8.say = n === 5; st8.sayUntil = Date.now() + 6500;
-      st8.ghost90 = n === 6; g90 = n === 6 ? performance.now() - 2000 : -1;
-      st8.turn = n >= PLAY; st8.focus = STEPS[n] ? STEPS[n].focus : null; st8.fz = -99;
-      settle(); disc.set(DISC); disc.el.disabled = !st8.turn;
-      api.playing(st8.turn);
+      settle();
+      st8.fixed = n >= 4; st8.rm = n >= 6 ? RM_NEW : RM_OLD; st8.disc = DISC;
+      st8.paid = n >= 7; st8.pay = n >= 7 ? 99 : 0; st8.say = st8.kq = n === 7;
+      st8.ghost90 = n === 8; g90 = n === 8 ? stage.drawing - 20 : -1;
+      st8.crate = n >= 6 ? 2 : n >= 4 ? 1 : 0; st8.crateT = st8.swapT = st8.sq = -99; st8.surp = -99; st8.wr = {};
+      st8.turn = n >= PLAY; if (n < PLAY) st8.tried = false;
+      st8.focus = STEPS[n] ? STEPS[n].focus : null; st8.fz = -99;
+      st8.pb = PB[Math.min(n, PB.length - 1)].slice(); st8.pbT = -99;
+      disc.set(DISC); disc.el.disabled = !st8.turn;
+      api.playing(st8.turn); show();
+      if (!quiet) stage.render();
     }
     /* step n's entrance, played from the finished state of step n - 1 */
     function enter(n) {
       if (STEPS[n]) focus(STEPS[n].focus);
-      if (n === 3) go(1);
-      else if (n === 4) go(2);
-      else if (n === 5) payoff();
-      else if (n === 6) { st8.say = false; st8.ghost90 = true; g90 = performance.now(); stage.animate(900); }
-      else if (n === PLAY) { st8.turn = true; st8.ghost90 = false; st8.say = false; disc.el.disabled = false; api.playing(true); }
-      if (st8.focus && !st8.busy) stage.animate(300);
-      stage.render();
+      board_(n, true);
+      if (n === 4) go(1);
+      else if (n === 6) go(2);
+      else if (n === 7) payoff();
+      else if (n === 8) { st8.say = st8.kq = false; st8.ghost90 = true; g90 = stage.drawing; stage.animate(900); }
+      else if (n === PLAY) { st8.turn = true; st8.ghost90 = false; st8.say = st8.kq = false; disc.el.disabled = false; api.playing(true); stage.animate(300); }
+      else stage.animate(300);
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) { if (n === OUTRO) closing(); return; }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
       if (n === OUTRO) closing();
     });
-    function closing() {
-      api.gotIt();
-      var nx = api.nav && api.nav.querySelector('.btn'); if (nx && !S.reduce) { nx.classList.remove('rm-nudge'); void nx.offsetWidth; nx.classList.add('rm-nudge'); }
-    }
+    function closing() { S.reward(api); }
 
     /* ---------------- under the picture: anglers + commercial = killed by fishing, and the reader's slider ---------------- */
     var css = S.el('style', null, document.head);
@@ -520,45 +685,62 @@ SITE.register({
       '#removals .op{align-self:center;font:400 clamp(28px,2.6vw,44px)/1 var(--f-title)}' +
       '#removals .eqyr{display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:clamp(78px,7vw,112px);padding:6px 10px;border-radius:10px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);transform:rotate(-2deg);box-shadow:4px 4px 0 var(--sh-tan)}' +
       '#removals .eqyr b{font:400 clamp(22px,2vw,32px)/1 var(--f-label);color:var(--mustard)}#removals .eqyr small{font:700 clamp(10px,.8vw,12px)/1.1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}' +
-      '#removals .sc-play{justify-content:center}#removals .sc-play .ctl{flex:1;max-width:760px}#removals .sc-play .rod{margin-top:20px}#removals .ticks span:last-child{transform:translateX(-50%)}#removals .ticks span:first-child{transform:translateX(-12%)}' +
-      '#removals .navrow .btn.rm-nudge{animation:rmNudge 1.2s steps(6,end) 3}' +
-      '@keyframes rmNudge{0%,100%{transform:translateY(0)}20%{transform:translateY(-6px)}40%{transform:translateY(0)}60%{transform:translateY(-3px)}}' +
+      '#removals .sc-play{justify-content:center}#removals .sc-play .ctl{flex:1;max-width:760px}#removals .sc-play .rod{margin-top:20px}#removals .ticks span:last-child{transform:translateX(-88%)}#removals .ticks span:first-child{transform:translateX(-12%)}' +
+      '#removals .pov .povtxt+.povtxt{margin-top:8px}' +
       '@media (max-aspect-ratio: 1/1), (max-width: 820px){#removals .eq{gap:4px}#removals .chip{min-width:0;flex:1;padding:5px 4px 4px}#removals .chip b{font-size:18px}#removals .chip small{font-size:11px;white-space:normal;text-align:center}#removals .op{font-size:22px}#removals .eqyr{min-width:52px;padding:4px 5px}#removals .eqyr b{font-size:17px}#removals .eqyr small{font-size:8.5px}#removals.playing .eq{display:none}#removals .pov::after{position:static;display:block;margin-top:4px}}' +
-      '@media (prefers-reduced-motion: reduce){#removals .chip.pop,#removals .navrow .btn.rm-nudge{animation:none}}';
+      '@media (prefers-reduced-motion: reduce){#removals .chip.pop{animation:none}}';
     var eq = S.el('div', { class: 'eq', 'aria-live': 'polite' }, api.bar);
     S.el('span', { class: 'eqyr' }, eq, '<b>2025</b><small>coastwide</small>');
     var cA = S.el('span', { class: 'chip ang' }, eq, '<b></b><small></small>'); S.el('span', { class: 'op', 'aria-hidden': 'true' }, eq, '+');
     var cC = S.el('span', { class: 'chip com' }, eq, '<b></b><small></small>'); S.el('span', { class: 'op', 'aria-hidden': 'true' }, eq, '=');
-    var cT = S.el('span', { class: 'chip' }, eq, '<b></b><small></small>');
+    var cT = S.el('span', { class: 'chip', 'data-big': '' }, eq, '<b></b><small></small>');
     function chip(c, v, sm, extra) {
-      var b = c.querySelector('b');
-      if (b.textContent !== v) { if (/\d/.test(b.textContent)) S.countTo(b, v); else b.textContent = v; if (!S.reduce) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
-      c.querySelector('small').textContent = sm; c.classList.toggle('pink', !!extra);
+      var b = c.querySelector('b');                                  // (compared with the value it is rolling to, so a quick change back still lands)
+      if (b._to !== v) { b._to = v; if (/\d/.test(b.textContent)) S.countTo(b, v); else b.textContent = v; if (!S.reduce) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
+      c.querySelector('small').innerHTML = K.esc(sm).replace(/\bwas (\d[\d,.]*M?)/, 'was <s class="was">$1</s>');     // the old figure, struck
+      c.classList.toggle('pink', !!extra);
     }
+    function r2(v) { return Math.round(v * 100) / 100; }
     function show() {
-      var a = angM(st8.cardState || st8), a0 = angM(PRE[0]), c = R.commLandings + discM(), c0 = R.commLandings * (1 + DISC / 100), mine = Math.abs(st8.disc - DISC) > 1e-6;
-      chip(cA, S.m(a, 2), Math.abs(a - a0) > 0.005 ? 'anglers, old count ' + S.m(a0, 2) : 'killed by anglers');
+      // each part is rounded first and the total is built from the rounded parts, so the equation always adds up
+      var a = r2(angM(st8.cardState || st8)), a0 = r2(A_OLD), c = r2(comM(st8)), c0 = r2(C_NOW), mine = Math.abs(st8.disc - DISC) > 1e-6;
+      var t = r2(a + c), t0 = r2(a0 + c0);
+      chip(cA, S.m(a, 2), Math.abs(a - a0) > 0.005 ? 'anglers, was ' + S.m(a0, 2) : 'killed by anglers');
       chip(cC, S.m(c, 2), mine ? 'commercial, your figure' : 'killed commercially', mine);
-      chip(cT, S.m(a + c, 2), Math.abs(a + c - a0 - c0) > 0.005 ? 'all fishing, old count ' + S.m(a0 + c0, 2) : 'killed by all fishing');
+      chip(cT, S.m(t, 2), Math.abs(t - t0) > 0.005 ? 'all fishing, was ' + S.m(t0, 2) : 'killed by all fishing');
     }
     var playBox = S.el('div', { class: 'sc-play' }, api.bar);
-    var disc = S.slider(playBox, { label: 'Commercial fish thrown back dead, for every 100 landed', min: 0, max: 100, step: 1, value: DISC, fmt: function (v) { return fmtP(v); },
-      ticks: [{ v: DISC, t: 'today: 2.8', hot: true }, { v: DISC90, t: '1990s: 80' }],
-      onInput: function (v) { if (!st8.turn) return; if (st8.busy) { stage.animate(0); settle(); } st8.disc = v < 3.4 && v > 2 ? DISC : v; st8.say = false; stage.animate(250); show(); } });
+    var disc = S.slider(playBox, { label: 'Commercial fish thrown back dead, for every 100 landed', min: 0, max: DISC90, step: 1, value: DISC, fmt: function (v) { return fmtP(v); },
+      ticks: [{ v: DISC, t: fmtP(DISC) + ': today', hot: true }, { v: DISC90, t: '1990s estimate' }],        // (no 80 here: the closing's Chesapeake 8 in 10 shares this screen)
+      snaps: [{ v: DISC, r: 0.7 }, { v: DISC90, onSnap: at90 }],
+      onInput: function (v) {
+        if (!st8.turn) return;
+        if (st8.busy) { stage.animate(0); settle(); }
+        var was = st8.disc, write = Math.abs(was - DISC) < 1e-6 && Math.abs(v - DISC) > 1e-6;
+        st8.disc = v; st8.tried = true;
+        if (write) st8.wr.disc = stage.drawing + 1;                  // the reader's figure is written in on the board
+        stage.animate(write || wAge('disc') < 8 ? 700 : 250); show();
+      } });
+    // the first time the reader lets go on the 1990s estimate, the Striper looks surprised (once per visit)
+    var surprised = false;
+    function at90() {
+      if (surprised || !st8.turn) return;
+      surprised = true; st8.surp = stage.drawing + 1; stage.animate(1000);
+    }
 
-    api.take('Both corrections shrink the anglers’ side. Commercial numbers weren’t revised, so commercial fishing is now a bigger share of the stripers killed, and bigger still if the commercial discard estimate is too low.');
-    api.pov('ASGA wants commercial dead discards studied as rigorously as recreational release deaths, and wants the big spawning females protected.');
+    api.take('Both corrections shrink the anglers’ side. Commercial numbers weren’t revised, so commercial fishing is now a bigger share of the stripers killed. How much bigger depends partly on the commercial discard estimate, which the assessment scientists have made a top research priority. Anglers still account for more of the stripers killed, but commercial’s slice is bigger than the old count showed.');
+    api.pov('ASGA notes that about 8 in 10 commercially harvested stripers, counted by number of fish, come from the Chesapeake Bay, the nursery for most of the coast’s stripers. ASGA wants commercial dead discards studied as rigorously as recreational release deaths, and wants the big spawning females protected.');
     api.more('Where these numbers come from',
-      '<p>2025, coastwide. Anglers kept 1.14 million stripers and released 9.24 million (corrected; the old estimates were 1.42 million and 11.8 million). Commercial fishermen landed 543,000. Commercial numbers were not revised.</p>' +
-      '<p>Release deaths: the assessment has assumed 9 in 100 released stripers die. A new study by Micah Dean of the Massachusetts Division of Marine Fisheries found about half that, roughly 4.5 in 100, and the real rate depends on fish size. The benchmark assessment is weighing it now.</p>' +
-      '<p>Commercial dead discards: the 2.8-in-100 figure is estimated from tagged fish that commercial fishermen report. In the 1990s the same kind of estimate put commercial dead discards as high as 80 for every 100 landed. The assessment scientists made it their top research priority at the last assessment.</p>' +
+      '<p>2025, coastwide. Anglers kept ' + mil(R.kept) + ' stripers and released ' + mil(R.released) + ' (corrected; the old count had ' + mil(R.keptOld) + ' and ' + (Math.round(R.releasedOld * 10) / 10) + ' million). Commercial fishermen landed ' + mil(R.commLandings) + '. Commercial numbers were not revised.</p>' +
+      '<p>Release deaths: the assessment has assumed 9 in 100 released stripers die. A new study by Micah Dean and colleagues at the Massachusetts Division of Marine Fisheries found about half that on average, and the real rate depends on fish size. This page uses about 4.5 in 100. The benchmark assessment is weighing the study now.</p>' +
+      '<p>Commercial dead discards: the 2.8 in 100 figure is estimated from tagged fish that commercial fishermen report. In the 1990s the same kind of estimate put commercial dead discards as high as 80 for every 100 landed. The assessment scientists made it their top research priority at the last assessment.</p>' +
       '<p>The totals under the picture are our own sums of these 2025 inputs: fish kept, plus released fish that die, plus commercial landings, plus commercial fish thrown back dead. They are not an official removals figure. The stock assessment counts the same pieces but works state by state and by fish size, so its own totals can differ somewhat.</p>' +
-      '<p>The two stacks use the same blocks: each one stands for 250,000 stripers.</p>');
-    // the hand-off to the states page
-    setTimeout(function () {
-      var nx = api.nav && api.nav.querySelector('a.btn:not(.ghost)');
-      if (nx && /State by state/.test(nx.textContent)) nx.innerHTML = 'Next: Where do commercial stripers come from? <span class="fishy" aria-hidden="true"></span>';
-    }, 0);
+      '<p>The two stacks use the same blocks: each one stands for 250,000 stripers.</p>' +
+      '<p class="src">Sources: anglers’ kept and released fish from ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' corrected estimates, posted Aug 31, 2026; the release study, ' + FRAME.link('dmf', 'M. Dean and others, Massachusetts Division of Marine Fisheries') + ' (preprint, 2026); commercial landings and the commercial discard figures as presented by ASGA on Sept 22, 2026; the Chesapeake note from ASGA’s Sept 22, 2026 presentation (slide 12).</p>');
+
+    // the idle heartbeat (SITE.idle): the boil, the blinks, the gulls, the net and the hint's bob between moments
+    S.idle(api.stageHost, function () { stage.drawing++; stage.render(); }, function () { return !!stage.anim; });
+
     snap(0);
     document.addEventListener('site:fonts', function () { stage.render(); });
   }

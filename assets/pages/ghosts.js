@@ -9,8 +9,9 @@
    and Kit says her line. Steps: the record; the gap is ghost trips (to 1995, the first boat); a boat for every
    27 million (to 1999); 1999 in numbers; on to 2025 (272 million); fish too (the ledger flips to released
    fish, 421 million). Then the reader's turn: the Striper rolls the record back up and hands over the roll.
-   Numbers: ASGA's tables of NOAA's old and corrected estimates, rounded, so the running count is scaled to
-   land on the reported totals (272M trips, 51M kept, 421M released). */
+   Numbers: read from ASGA's charts of NOAA's old and corrected estimates, rounded. The running count on the
+   post starts in 1990 (the totals are "since the 1990s", decision 5) and is scaled to land on the reported
+   totals (272M trips, 51M kept, 421M released). */
 SITE.register({
   id: 'ghosts', short: 'Ghost trips', title: '272 million trips that never happened', scrolly: true,
   build: function (api) {
@@ -20,11 +21,12 @@ SITE.register({
       kept: { max: 6, sign: 'STRIPERS KEPT', tally: 'GHOST FISH KEPT', say: 'That’s a lot of fish nobody kept.', icon: 'fish', noun: 'ghost fish kept' },
       released: { max: 60, sign: 'STRIPERS RELEASED', tally: 'GHOST RELEASES', say: 'That’s a lot of fish nobody caught.', icon: 'fish', noun: 'ghost releases' }
     };
-    // the running ghost count per series, scaled to land on the reported total; the year each tenth is reached
-    var DATA = {};
+    // the running ghost count per series, from 1990 (COUNT0), scaled to land on the reported total; the year
+    // each tenth is reached
+    var DATA = {}, COUNT0 = Y.indexOf(1990);
     Object.keys(MET).forEach(function (m) {
       var d = SER[m], sum = 0, cum = [], launch = [];
-      d.old.forEach(function (v, i) { sum += v - d.fixed[i]; cum.push(sum); });
+      d.old.forEach(function (v, i) { if (i >= COUNT0) sum += v - d.fixed[i]; cum.push(sum); });
       cum = cum.map(function (c) { return c * d.total / sum; });
       for (var b = 1; b <= 10; b++) for (var i = 0; i < cum.length; i++) if (cum[i] >= b * d.total / 10 - 1e-6) { launch.push(i); break; }
       DATA[m] = { old: d.old, fixed: d.fixed, cum: cum, total: d.total, launch: launch };
@@ -138,6 +140,8 @@ SITE.register({
       s += port ? S.cloud(640, 250, 0.62) : S.cloud(760, L.HZ * 0.3, 0.9) + S.cloud(1300, L.HZ * 0.6, 0.62);
       var pd = st8.pay, fin = pd >= 999, rx = rollX(L), kf = st8.kf;
 
+      /* the step's subject pops with a small overshoot when its step arrives (director 10, in place of a spotlight) */
+      var pk = popK(), pSign = st8.focus === 'scroll' ? pk : 1, pScroll = st8.focus === 'scroll' || st8.focus === 'ledger' ? 1 + (pk - 1) * 0.5 : 1, pFleet = st8.focus === 'fleet' ? pk : 1;
       /* the fleet on the horizon (behind everything on the beach) */
       var flying = false, fleet = '', air = '';
       var puffAt = function (b) { var rank = 0, x0 = slot(L, b).x; for (var j = 0; j < 10; j++) if (slot(L, j).x < x0) rank++; return 50 + rank * 2; };
@@ -173,15 +177,18 @@ SITE.register({
           air += vessel(M.icon, bx, by, sc, fl, S.clamp(fl ? ang - 180 : ang, -20, 20) * 0.5);
         }
       });
-      s += fleet;
+      s += popG(fleet, L.slots.x0 + 2.25 * L.slots.dx, L.HZ, pFleet);
 
       /* the tally board on its notched stake, planted in the shallows */
-      var TB = L.tally, nH = 150 + 10 * TB.notch, bcy = TB.y + TB.ts * (-nH + 40 + st8.drop * TB.notch);
+      var TB = L.tally, nH = 150 + 10 * TB.notch, bcy = TB.y + TB.ts * (-nH + 40 + st8.drop * TB.notch), tb0 = s.length;
       s += '<ellipse cx="' + N(TB.x) + '" cy="' + N(TB.y - 2) + '" rx="' + N(34 * TB.ts) + '" ry="' + N(9 * TB.ts) + '" fill="' + C.skyDeep + '" stroke="' + INK + '" stroke-width="4"/>';
       s += S.cel(K.tallyBoard({ x: TB.x, y: TB.y, notches: 10, notch: TB.notch, drop: st8.drop, w: TB.w, label: ' ', scale: TB.ts }));
-      s += '<g transform="translate(' + N(TB.x) + ' ' + N(bcy) + ') scale(' + TB.ts + ')">' + K.text(M.tally, 0, -13, { size: port ? 40 : 34, font: 'label', fill: S.SH.gray }) +
-        K.text(fmtM(st8.tv), 0, 35, { size: 56, font: 'label', fill: INK }) + '</g>';
+      // before 1990 the board waits: COUNT STARTS 1990
+      var pre = st8.k < COUNT0 && st8.tv < 0.05;
+      s += '<g transform="translate(' + N(TB.x) + ' ' + N(bcy) + ') scale(' + TB.ts + ')">' + K.text(pre ? 'COUNT STARTS' : M.tally, 0, -13, { size: port ? 40 : 34, font: 'label', fill: S.SH.gray }) +
+        K.text(pre ? '1990' : fmtM(st8.tv), 0, 35, { size: 56, font: 'label', fill: INK }) + '</g>';
       s += path('M' + N(TB.x - 36 * TB.ts) + ',' + N(TB.y + 6) + ' q12,-6 24,0 M' + N(TB.x + 16 * TB.ts) + ',' + N(TB.y + 8) + ' q12,-6 24,0', 'none', 4, '', C.cream);
+      if (pFleet !== 1) s = s.slice(0, tb0) + popG(s.slice(tb0), TB.x, TB.y, pFleet);
 
       /* the title sign, on a pole behind the scroll: what the ledger records, and its key */
       var SG = L.sign, f = SG.fs, fl0 = f[0] * 0.86, fl1 = f[1] * 0.86, fl2 = f[2] * 0.86;
@@ -199,15 +206,15 @@ SITE.register({
         var wB = 64 + 14 + cxL('GHOSTS: THE GAP', fl2), bx0 = -wB / 2, by0 = -sh / 2 + yB;
         sg += '<rect x="' + N(bx0) + '" y="' + N(by0 - fl2 * 0.78) + '" width="64" height="' + N(fl2 * 0.86) + '" rx="4" fill="url(#ghh)" stroke="' + C.gray + '" stroke-width="4"/>' + K.text('GHOSTS: THE GAP', bx0 + 78, by0, { size: f[2], anchor: 'start', fill: S.SH.gray });
       }
-      s += '<g transform="translate(' + N(SG.x) + ' ' + N(SG.cy) + ') scale(1 ' + flipY + ')">' + sg + '</g>';
+      s += '<g transform="translate(' + N(SG.x) + ' ' + N(SG.cy) + ') scale(' + pSign + ' ' + N(flipY * pSign * 1000) / 1000 + ')">' + sg + '</g>';
 
       /* the ledger scroll on its easel: the fixed end at the left, the roll pulled out to the right */
       var EG = L.GY - 4, legH = EG - L.PB;
       s += S.longShadow(L.EX, EG, 300, 260, 'sand') + S.shadow(L.EX, EG, 470, 'sand');
       // the scroll is clipped at its pulled roll, so none of its rows show on the sand beyond the paper
       s += '<clipPath id="ghclip"><rect x="-100" y="' + N(L.PT - 40) + '" width="' + N(rx + 130) + '" height="' + N(L.PB - L.PT + 70) + '"/><rect x="-100" y="' + N(L.PB + 30) + '" width="' + (L.W + 200) + '" height="400"/></clipPath>';
-      s += '<g clip-path="url(#ghclip)">' + S.cel(K.ledgerScroll({ x: L.EX, y: EG, w: L.fw, h: L.PB - L.PT, legH: legH, unroll: (rx - L.x0 - L.fw) / (L.RX1 - L.x0 - L.fw), extra: L.RX1 - L.x0 - L.fw, flip: true })) + '</g>';
-      s += chart(L, d, M, rx);
+      s += popG('<g clip-path="url(#ghclip)">' + S.cel(K.ledgerScroll({ x: L.EX, y: EG, w: L.fw, h: L.PB - L.PT, legH: legH, unroll: (rx - L.x0 - L.fw) / (L.RX1 - L.x0 - L.fw), extra: L.RX1 - L.x0 - L.fw, flip: true })) + '</g>' +
+        chart(L, d, M, rx), (L.x0 + L.RX1) / 2, (L.PT + L.PB) / 2, pScroll);
 
       /* the invitation: pull the roll */
       if (st8.turn && !st8.tried && !st8.play && kf < 28) {
@@ -217,8 +224,6 @@ SITE.register({
         s += K.tag('PULL THE ROLL', N(hx + nudge * 0.5), N(hy - 10), { size: L.hint, rot: -4, fill: C.mustard });
       }
 
-      /* the spotlight: everything but the step's subject sits under a dark scrim (ghosts in flight stay lit) */
-      s += spotlight(L, sh, sTop, bcy);
       /* ghosts in flight pass over the scroll */
       s += air;
 
@@ -255,7 +260,7 @@ SITE.register({
     }, function () {
       var d = D(), k = st8.k, M = MET[st8.m];
       return 'A ledger scroll on the beach, unrolled from 1982 to ' + Y[k] + '. ' + M.sign.charAt(0) + M.sign.slice(1).toLowerCase() + ' that year: old estimate ' + S.m(d.old[k]) +
-        ', corrected ' + S.m(d.fixed[k]) + '. ' + M.noun.charAt(0).toUpperCase() + M.noun.slice(1) + ' so far: ' + fmtM(d.cum[k]) + '. ' + ghostsAt(k) + ' of 10 ghost ' + (M.icon === 'boat' ? 'boats' : 'fish') + ' have sailed off.';
+        ', corrected ' + S.m(d.fixed[k]) + '. ' + (k < COUNT0 ? 'The running count starts in 1990. ' : M.noun.charAt(0).toUpperCase() + M.noun.slice(1) + ' since 1990: ' + fmtM(d.cum[k]) + '. ') + ghostsAt(k) + ' of 10 ghost ' + (M.icon === 'boat' ? 'boats' : 'fish') + ' have sailed off.';
     });
 
     /* the record drawn on the paper, revealed up to the roll */
@@ -326,6 +331,15 @@ SITE.register({
         }
       } else if (st8.turn && !st8.tried && st8.kf < 28) { o.pose = 'point'; o.expr = 'talk'; o.look = 'fwd'; o.mouth = (T >> 3) % 2 ? 'mid' : 'closed'; }
       else if (moving) { o.flip = strTarget(L) < x; if ((T >> 1) % 2) o.y -= 8; }
+      else if (focusPt(L)) {
+        var fp = focusPt(L), sh0 = K.striperPoints(o).shoulder, fdx = fp[0] - sh0[0], fdy = fp[1] - sh0[1], fl = Math.sqrt(fdx * fdx + fdy * fdy) || 1;
+        o.pose = 'point'; o.expr = 'kind'; o.flip = fp[0] < x; o.look = 'fwd';
+        sh0 = K.striperPoints(o).shoulder; o.reach = [sh0[0] + fdx / fl * 170 * L.SS, sh0[1] + fdy / fl * 170 * L.SS];
+        o.squash = S.breath(stage);
+      } else {
+        o.squash = S.breath(stage);
+        var lk = st8.turn && S.lookAt(stage, K.striperPoints(o).eye, o.flip); if (lk) o.look = lk;
+      }
       s += S.shadow(x, L.GY, 210 * L.SS / 0.78, 'sand');
       if (moving && Math.abs(strTarget(L) - x) > 60) s += K.speedLines({ x: x + (strTarget(L) < x ? 150 : -150) * L.SS, y: y - 200 * L.SS, rot: strTarget(L) < x ? 180 : 0, len: 120, n: 3, gap: 34, w: 6 });
       s += K.striper(o);
@@ -337,21 +351,14 @@ SITE.register({
       return s;
     }
 
-    /* the spotlight's subjects: the sign and the scroll; the fleet on the horizon and the tally board */
-    function spotlight(L, sh, sTop, bcy) {
-      var f = st8.focus; if (!f) return '';
-      var SG = L.sign, TB = L.tally, rs = [];
-      var scroll = [L.x0 - 34, L.PT - 56, L.RX1 - L.x0 + 90, L.PB - L.PT + 120];
-      if (f === 'scroll') rs = [[SG.x - SG.w / 2 - 20, sTop - 18, SG.w + 40, sh + 36], scroll];
-      else if (f === 'ledger') rs = [scroll];
-      else if (f === 'fleet') {
-        var sl = L.slots, bw = TB.w * TB.ts / 2 + 30;
-        rs = [[sl.x0 - 110, L.HZ - (L.port ? 110 : 140), 4.5 * sl.dx + 220, L.port ? 150 : 190], [TB.x - bw, bcy - 90 * TB.ts, 2 * bw, TB.y - bcy + 110 * TB.ts]];
-      }
-      var op = st8.T - st8.fz >= 0 && st8.T - st8.fz < 3 ? [0.14, 0.28, 0.38][st8.T - st8.fz] : 0.42, W = L.W + 40, H = L.H + 40;
-      return '<mask id="ghSpot" maskUnits="userSpaceOnUse" x="-20" y="-20" width="' + W + '" height="' + H + '"><rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="#fff"/>' +
-        rs.map(function (r) { return '<rect x="' + N(r[0]) + '" y="' + N(r[1]) + '" width="' + N(r[2]) + '" height="' + N(r[3]) + '" rx="28" fill="#000"/>'; }).join('') + '</mask>' +
-        '<rect x="-20" y="-20" width="' + W + '" height="' + H + '" fill="' + INK + '" opacity="' + op + '" mask="url(#ghSpot)"/>';
+    /* the step's subject pops when its step arrives (the film's pop-on, small): 4 drawings of overshoot */
+    function popK() { var a = st8.T - st8.fz; return a >= 0 && a < 4 ? [1.06, 0.97, 1.02, 1][a] : 1; }
+    function popG(svg, cx, cy, k) { return k === 1 ? svg : '<g transform="translate(' + N(cx) + ' ' + N(cy) + ') scale(' + k + ') translate(' + N(-cx) + ' ' + N(-cy) + ')">' + svg + '</g>'; }
+    /* where the Striper points for each step's subject: the ledger, or the fleet on the horizon */
+    function focusPt(L) {
+      if (st8.focus === 'fleet') return [L.slots.x0 + 2.25 * L.slots.dx, L.HZ - 20];
+      if (st8.focus === 'scroll' || st8.focus === 'ledger') return [(L.X0 + rollX(L)) / 2, (L.PT + L.PB) / 2];
+      return null;
     }
 
     /* ---------------- the clock: the page draws on twos while anything moves ---------------- */
@@ -372,7 +379,7 @@ SITE.register({
       var L = LL; if (!L) return;
       if (st8.rewAt && st8.T >= st8.rewAt) { st8.rewAt = 0; st8.tgt = 0; st8.play = 'walk'; }
       if (st8.play === 'walk' && Math.abs(strTarget(L) - st8.sx) < 40) st8.play = st8.tgt < st8.kf ? 'rewind' : 'pull';
-      if (st8.play === 'pull') { setK(Math.min(st8.tgt, st8.kf + 0.5)); if (st8.kf >= st8.tgt) stopPlay(); }
+      if (st8.play === 'pull') { setK(Math.min(st8.tgt, st8.kf + (st8.fast ? 1.25 : 0.5))); if (st8.kf >= st8.tgt) stopPlay(); }
       else if (st8.play === 'rewind') { setK(Math.max(st8.tgt, st8.kf - 1.5)); if (st8.kf <= st8.tgt) stopPlay(); }
       var tg = strTarget(L), dx = tg - st8.sx;
       st8.sx = st8.play === 'pull' || st8.play === 'rewind' ? tg : Math.abs(dx) < 3 ? tg : st8.sx + S.clamp(dx * 0.35, -80, 80);
@@ -427,12 +434,12 @@ SITE.register({
       if (st8.k === NY) st8.pay = S.reduce ? 999 : 0;
       live.textContent = label(); wake();
     }
-    function stopPlay() { st8.play = 0; }
+    function stopPlay() { st8.play = 0; st8.fast = false; }
     function pullTo(k) { st8.tgt = k; st8.play = LL && Math.abs(strTarget(LL) - st8.sx) < 40 ? 'pull' : 'walk'; if (!LL || st8.sx == null) st8.play = 'pull'; wake(); }
     function label() {
       var d = D(), k = st8.k, M = MET[st8.m];
       return 'The record unrolled from 1982 to ' + Y[k] + '. ' + M.sign.charAt(0) + M.sign.slice(1).toLowerCase() + ' that year: old count ' + S.m(d.old[k]) +
-        ', corrected ' + S.m(d.fixed[k]) + '. ' + M.noun.charAt(0).toUpperCase() + M.noun.slice(1) + ' so far: ' + fmtM(d.cum[k]) + '.';
+        ', corrected ' + S.m(d.fixed[k]) + '. ' + (k < COUNT0 ? 'The running count starts in 1990.' : M.noun.charAt(0).toUpperCase() + M.noun.slice(1) + ' since 1990: ' + fmtM(d.cum[k]) + '.');
     }
 
     /* ---------------- the walkthrough ---------------- */
@@ -440,18 +447,18 @@ SITE.register({
     var STEPS = [
       { focus: 'scroll', cls: 'first', h: '<p>NOAA’s correction reaches all the way back to the early 1980s. This scroll is the record of striper fishing trips: the old count is the <b>dashed gray</b> line, the corrected count the <b>blue</b> one.</p>' },
       { focus: 'ledger', h: '<p>The hatched gap between the two lines is <b>ghost trips</b>: trips the old count included that never happened.</p>' },
-      { focus: 'fleet', h: '<p>Every time the ghosts add up to another <b>27 million trips</b>, a ghost boat peels off and sails to the horizon. The board on the post keeps the running count.</p>' },
-      { focus: 'ledger', h: '<p><b>1999 was cut the most.</b> The old count said <b class="num">' + T99.old[17].toFixed(1) + ' million</b> trips. The corrected count says <b class="num">' + T99.fixed[17].toFixed(1) + ' million</b>, less than half.</p>' },
-      { focus: null, h: '<p>Keep going to 2025 and the ghosts add up to <b>272 million trips</b> that never happened.</p>' },
-      { focus: null, h: '<p><b>Fewer trips means fewer fish caught, too.</b> The same correction takes <b>421 million</b> released stripers and <b>51 million</b> kept stripers out of the record.</p>' },
+      { focus: 'fleet', h: '<p>Every time the ghosts add up to another <b>27 million trips</b>, a ghost boat peels off and sails to the horizon. The board on the post keeps the running count, starting in 1990.</p>' },
+      { focus: 'ledger', h: '<p><b>1999 had the deepest cut.</b> The old count said <b class="num">' + T99.old[17].toFixed(1) + ' million</b> trips. The corrected count says <b class="num">' + T99.fixed[17].toFixed(1) + ' million</b>, less than half.</p>' },
+      { focus: null, h: '<p>Keep going to 2025. Since the 1990s, the ghosts add up to <b>272 million trips</b> that never happened.</p>' },
+      { focus: null, h: '<p><b>Fewer trips means fewer fish caught, too.</b> Since the 1990s, the same correction takes <b>421 million</b> released stripers and <b>51 million</b> kept stripers out of the record.</p>' },
       { focus: null, cls: 'turn', h: '<span class="go">Your turn</span><p>Pull the roll to the right to unroll the record and launch the ghost boats. Push it back to roll it up again.</p>' }
     ];
-    var PULL = [0, 13, 17, 17, NY, NY], PLAY = STEPS.length - 1, OUTRO = STEPS.length;
+    var PULL = [0, Math.max(DATA.trips.launch[0], COUNT0 + 1), 17, 17, NY, NY], PLAY = STEPS.length - 1, OUTRO = STEPS.length;
     STEPS.forEach(function (d) { api.step(d.h, d.cls); });
     function focus(f) { if (f !== st8.focus) { st8.focus = f; st8.fz = st8.T + 1; } }
     /* the finished state of step n, drawn at once (a jump, a scroll back, or reduced motion) */
-    function snap(n) {
-      st8.play = 0; st8.rewAt = 0; st8.drag = null; st8.flip = -1; st8.was = null;
+    function snap(n, quiet) {
+      st8.play = 0; st8.rewAt = 0; st8.fast = false; st8.drag = null; st8.flip = -1; st8.was = null;
       st8.m = n === 5 ? 'released' : 'trips';
       var kf = n >= PLAY ? 0 : PULL[n];
       st8.kf = kf; st8.k = Math.round(kf); st8.ves = []; syncFleet(true);
@@ -460,7 +467,7 @@ SITE.register({
       if (LL) st8.sx = L0home();
       key.value = Y[st8.k]; key.disabled = !st8.turn; live.textContent = label();
       api.playing(st8.turn);
-      stage.drawing++; stage.render();
+      if (!quiet) { stage.drawing++; stage.render(); }
     }
     function L0home() { return LL ? LL.home : null; }
     /* step n's entrance, played from the finished state of step n - 1 */
@@ -473,13 +480,15 @@ SITE.register({
     }
     api.onStep(function (n, prev) {
       if (n >= PLAY && prev >= PLAY) { if (n === OUTRO) closing(); return; }
-      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev); enter(n); }
+      if (prev >= 0 && n === prev + 1 && !S.reduce) { snap(prev, true); enter(n); }
       else snap(n);
       if (n === OUTRO) closing();
     });
     function closing() {
-      api.gotIt(); handoff.classList.add('on');
-      var nx = api.nav && api.nav.querySelector('.btn'); if (nx && !S.reduce) { nx.classList.remove('gh-nudge'); void nx.offsetWidth; nx.classList.add('gh-nudge'); }
+      S.reward(api); handoff.classList.add('on');
+      // a reader who scrolls on without pulling the roll still gets the page's picture (director 4): the Striper
+      // walks back, unrolls the record to 2025, the whole fleet sails out and the board lands on the final total
+      if (st8.turn && !st8.tried && st8.kf < NY) { st8.rewAt = 0; st8.fast = true; pullTo(NY); }
     }
 
     /* keyboard and screen readers: the roll as a range, hidden under the picture */
@@ -488,10 +497,12 @@ SITE.register({
     var live = S.el('p', { class: 'sr', 'aria-live': 'polite' }, api.bar);
 
     /* ---------------- the close ---------------- */
-    api.take('Across the whole record, the corrected counts of trips, kept fish and released fish each come to about 58 for every 100 in the old counts: 272 million trips, 51 million kept fish and 421 million released fish that never happened. Since 2015 it’s about 71 for every 100.');
+    api.take('Across the whole record, the corrected counts of trips, kept fish and released fish each come to about 58 for every 100 in the old counts. The other 42 never happened, which is the song’s “down about 42 percent”. Since the 1990s, that adds up to 272 million trips, 51 million kept fish and 421 million released fish that never happened. Since 2015 the gap is smaller: about 71 trips and 70 released fish for every 100 in the old counts.');
     api.more('About the record',
       '<p>NOAA surveyed anglers by phone until 2018, when it switched to the mail survey and recalibrated the older years to match. This correction revises the whole record again. In 1999 the corrected count has ' + per(17) + ' trips for every 100 in the old one; in 2025 it has ' + per(NY) + '.</p>' +
-      '<p>Each ghost boat stands for a tenth of the total. Yearly values are ASGA’s tables of NOAA’s old and corrected estimates, rounded, so the running count is scaled to land on the reported totals. Private boat and shore fishing only.</p>');
+      '<p>The running count on the post starts in 1990, and each ghost boat stands for a tenth of the total. Yearly values are read from ASGA’s charts of NOAA’s old and corrected estimates and rounded, so they are approximate. The running count is scaled to land on the reported totals. Private boat and shore fishing only.</p>' +
+      '<p>Both the old and the corrected numbers are survey estimates with a margin of error. The ghost trips are the difference between NOAA’s two best estimates, not trips that were checked one by one.</p>' +
+      '<p class="src">Source: ' + FRAME.link('mrip', 'NOAA’s Marine Recreational Information Program (MRIP)') + ' old and corrected estimates, posted Aug 31, 2026, as presented by ASGA on Sept 22, 2026.</p>');
     var handoff = S.el('p', { class: 'gh-next' }, api.panel, 'Fewer fish caught. So more fish left?');
 
     // page styles, scoped to this chapter
@@ -500,9 +511,7 @@ SITE.register({
       css.textContent = '#ghosts .gh-next{margin:4px 0 0;padding-left:34px;position:relative;font:400 19px/1.3 var(--f-label);color:var(--brick)}' +
         '#ghosts .gh-next::before{content:"";position:absolute;left:0;top:2px;width:24px;height:22px;background:var(--bobber) no-repeat center/contain}' +
         '#ghosts .gh-next.on{color:var(--ink)}' +
-        '#ghosts .navrow .btn.gh-nudge{animation:gh-nudge 1.2s steps(6,end) 2}' +
-        '@keyframes gh-nudge{0%,100%{transform:translateY(0)}20%{transform:translateY(-6px)}40%{transform:translateY(0)}60%{transform:translateY(-3px)}}' +
-        '@media (prefers-reduced-motion: reduce){#ghosts .navrow .btn.gh-nudge{animation:none}}';
+        '';
     }
 
     // the reader's turn: drag the roll through the years
@@ -515,6 +524,9 @@ SITE.register({
       move: function (name, pt) { if (!st8.drag) return; setK(st8.drag.kf + (pt.x - st8.drag.x) / LL.dx); stage.render(); },
       end: function () { if (!st8.drag) return; st8.drag = null; setK(Math.round(st8.kf)); stage.render(); }
     });
+
+    // the idle heartbeat (SITE.idle): the boil, the fleet's bob and the blinks keep going after the page's clock rests
+    S.idle(api.stageHost, function () { st8.T++; stage.drawing++; step(); stage.render(); }, function () { return !!raf || !!st8.drag; });
 
     stage.render(); snap(0);
     document.addEventListener('site:fonts', function () { stage.render(); });
