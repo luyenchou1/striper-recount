@@ -117,7 +117,7 @@ SITE.register({
     }
 
     var st8 = { m: 'trips', s: 'ME', u: 0, swim: false, dir: 1, phase: 0, drag: false, pop: 99, still: false, flip: 0, tried: false, book: false, reveal: 0, revealed: false, turn: false, hat: false,
-      press: null, seen: {}, cheered: false, cheer: false, squash: 0 };
+      press: null, hover: null, seen: {}, cheered: false, cheer: false, squash: 0 };
     st8.flip = ghosts(cur());
 
     /* ---------------- drawing helpers ---------------- */
@@ -279,6 +279,8 @@ SITE.register({
         if (st8.seen[id]) sg += K.check({ x: g.w / 2 - 10, y: -g.h / 2 + 2, scale: 0.42, color: C.brick });
         var sgn = K.at(g.x, g.y, sc, sel ? -2 : 0, sg);
         if (st8.press === id) sgn = '<g transform="translate(' + N(g.x) + ' ' + N(g.y + g.h / 2) + ') scale(1.06 0.9) translate(' + N(-g.x) + ' ' + N(-g.y - g.h / 2) + ')">' + sgn + '</g>';
+        // a laptop pointer over a sign lifts it: drawn here, since CSS :hover drops off each time the stage redraws
+        else if (st8.turn && !sel && st8.hover === id) sgn = '<g transform="translate(0 -6)">' + sgn + '</g>';
         signs += '<g data-sg="' + id + '">' + sgn + '</g>';
       });
       s += '<g aria-hidden="true">' + art + leads + signs;
@@ -464,6 +466,7 @@ SITE.register({
       if (!st8.turn || (e.target.closest && e.target.closest('[data-hit]'))) return;
       var id = nearest(e); if (!id) return;
       down = { id: id, x: e.clientX, y: e.clientY };
+      noLift = id; hover(null);                       // a pressed sign squashes and pops; it doesn't lift again under the pointer
       stage.ring(e); if (S.reduce) return;
       st8.press = id;
       // drawn next frame, so the element under the finger stays put for the touchstart that follows
@@ -476,6 +479,20 @@ SITE.register({
       lastPick = performance.now(); userPick(d.id);
     });
     stage.svg.addEventListener('pointercancel', function () { down = null; });
+    // the hover lift follows a mouse (never a finger), and the sign under it shows a pointer cursor
+    var noLift = null;
+    function hover(id) {
+      if (id === st8.hover) return;
+      st8.hover = id; stage.svg.style.cursor = id ? 'pointer' : '';
+      if (!stage.anim) stage.render();
+    }
+    stage.svg.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      var id = st8.turn && !(e.target.closest && e.target.closest('[data-hit]')) ? nearest(e) : null;
+      if (id !== noLift) noLift = null;
+      hover(id === noLift ? null : id);
+    });
+    stage.svg.addEventListener('pointerleave', function () { noLift = null; hover(null); });
     // a click still picks when no pointer did (a screen reader's activate, a keyboard), never twice for one tap
     stage.svg.addEventListener('click', function (e) {
       if (e.target.closest && e.target.closest('[data-hit]')) return;
@@ -515,7 +532,6 @@ SITE.register({
       '#states svg.stage [role=radio] .ring{stroke:none}' +
       '#states svg.stage [role=radio]:focus-visible .ring{stroke:#1E1510;stroke-width:9px}' +
       // laptop: the sign under the pointer lifts 6 units (polish B7)
-      '@media (hover:hover){' + IDS.map(function (id) { return '#states svg.stage:has([data-st="' + id + '"]:hover) [data-sg="' + id + '"]'; }).join(',') + '{translate:0 -6px}}' +
       '#states .eq{display:flex;align-items:stretch;justify-content:center;gap:clamp(6px,.9vw,14px)}' +
       '#states .eqyr{display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:clamp(110px,10vw,170px);padding:6px 10px;border-radius:10px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);transform:rotate(-2deg);box-shadow:4px 4px 0 var(--sh-tan)}' +
       '#states .eqyr b{font:400 clamp(24px,2.1vw,34px)/1 var(--f-label);color:var(--mustard)}#states .eqyr small{font:700 clamp(11px,.85vw,13px)/1.1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;margin-top:3px;white-space:nowrap}' +
