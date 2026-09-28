@@ -457,18 +457,29 @@ SITE.register({
       });
       return best;
     }
-    var pressT = 0;
+    // the pick happens on pointerup: the press redraws the stage, which replaces the element under the finger,
+    // and browsers then drop the click (a tap would squash the sign and do nothing else)
+    var pressT = 0, down = null, lastPick = -1e9;
     stage.svg.addEventListener('pointerdown', function (e) {
       if (!st8.turn || (e.target.closest && e.target.closest('[data-hit]'))) return;
       var id = nearest(e); if (!id) return;
+      down = { id: id, x: e.clientX, y: e.clientY };
       stage.ring(e); if (S.reduce) return;
       st8.press = id;
       // drawn next frame, so the element under the finger stays put for the touchstart that follows
       requestAnimationFrame(function () { if (!stage.anim) stage.render(); });
       clearTimeout(pressT); pressT = setTimeout(function () { st8.press = null; if (!stage.anim) stage.render(); }, 1000 / 12);
     });
+    stage.svg.addEventListener('pointerup', function (e) {
+      var d = down; down = null;
+      if (!d || !st8.turn || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 14) return;
+      lastPick = performance.now(); userPick(d.id);
+    });
+    stage.svg.addEventListener('pointercancel', function () { down = null; });
+    // a click still picks when no pointer did (a screen reader's activate, a keyboard), never twice for one tap
     stage.svg.addEventListener('click', function (e) {
       if (e.target.closest && e.target.closest('[data-hit]')) return;
+      if (performance.now() - lastPick < 700) return;
       var g = e.target.closest && e.target.closest('[data-st]'), id = e.detail === 0 && g ? g.getAttribute('data-st') : nearest(e);
       if (id) userPick(id);
     });
