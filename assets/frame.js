@@ -7,8 +7,10 @@
    FRAME.copy(text, ui)      the clipboard, else the text selected in ui.fall (a textarea) with a hint
    FRAME.share(o, ui)        the share sheet on phones ({title, text, url}), else FRAME.copy(o.copy)
    FRAME.wycd(host)          appends a copy of the "What you can do" block to host
+   FRAME.count(name)         a GotOne Labs count (labs-count.js), once per page view; a no-op without it
    Any element with data-share="page" (the footer's Share link) or data-share="four" (the home page's short
-   version) shares on click, with its message in the nearest .sharemsg. */
+   version) shares on click, with its message in the nearest .sharemsg, and is counted as share_page or
+   share_four. */
 (function () {
   'use strict';
   var M = window.RC_META || {}, F = window.FRAME = {}, SRC = M.src || {};
@@ -61,6 +63,7 @@
     host.appendChild(n);
     return n;
   };
+  F.count = function (name) { try { if (window.GotOneLabs) window.GotOneLabs.event(name); } catch (e) {} };
   F.pageUrl = function () { return F.url + (document.body.getAttribute('data-file') || ''); };
 
   // share buttons and links: label them for this device, then share on click
@@ -71,8 +74,8 @@
     var a = e.target.closest && e.target.closest('[data-share]'); if (!a) return;
     e.preventDefault();
     var box = a.closest('[data-sharebox]') || a.parentNode, msg = box.querySelector('.sharemsg');
-    if (a.getAttribute('data-share') === 'four') { var t = F.fourText(); F.share({ title: 'The Striper Recount', text: t, copy: t }, { msg: msg }); }
-    else { var u = F.pageUrl(); F.share({ title: document.title, text: M.shareText, url: u, copy: u }, { msg: msg, ok: 'Link copied. Paste it anywhere.' }); }
+    if (a.getAttribute('data-share') === 'four') { F.count('share_four'); var t = F.fourText(); F.share({ title: 'The Striper Recount', text: t, copy: t }, { msg: msg }); }
+    else { F.count('share_page'); var u = F.pageUrl(); F.share({ title: document.title, text: M.shareText, url: u, copy: u }, { msg: msg, ok: 'Link copied. Paste it anywhere.' }); }
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', label); else label();
 })();

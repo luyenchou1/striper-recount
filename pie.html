@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Lilita+One&family=Patrick+Hand&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;700;800&display=swap">
 <link rel="stylesheet" href="assets/site.css?v=3ecff5bb">
-<link rel="stylesheet" href="assets/frame.css?v=a72daa64">
+<link rel="stylesheet" href="assets/frame.css?v=36e54884">
 <link rel="stylesheet" href="assets/delight.css?v=407c55d2">
 </head>
 <body data-mode="single" data-page="pie" data-file="pie.html" class="single">
@@ -31,6 +31,12 @@
 
 <main id="main"></main>
 <footer class="sitefoot" data-sharebox>
+  <div class="helpful" data-helpful hidden>
+    <div class="hf-ask" role="group" aria-labelledby="hf-q"><span class="hf-q" id="hf-q">Was this helpful?</span><button type="button" class="hf-btn" data-v="up" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><rect x="2.5" y="10.5" width="4.5" height="10.5" rx="1.2" fill="#FBF6EA" stroke="#1E1510" stroke-width="2.2"/><path d="M7 10.5L10.6 3c1.6 0 2.8 1.2 2.8 2.8V9H19c1.3 0 2.2 1.2 2 2.4l-1.2 8c-.2 1-1 1.6-2 1.6H7z" fill="#FBF6EA" stroke="#1E1510" stroke-width="2.2" stroke-linejoin="round"/></svg><span class="sr">Yes, helpful</span></button><button type="button" class="hf-btn down" data-v="down" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><rect x="2.5" y="10.5" width="4.5" height="10.5" rx="1.2" fill="#FBF6EA" stroke="#1E1510" stroke-width="2.2"/><path d="M7 10.5L10.6 3c1.6 0 2.8 1.2 2.8 2.8V9H19c1.3 0 2.2 1.2 2 2.4l-1.2 8c-.2 1-1 1.6-2 1.6H7z" fill="#FBF6EA" stroke="#1E1510" stroke-width="2.2" stroke-linejoin="round"/></svg><span class="sr">No, not helpful</span></button></div>
+    <p class="hf-msg" role="status" aria-live="polite"></p>
+    <form class="hf-note" hidden><label for="hf-n">Anything to add? (optional, private)</label><span class="hf-row"><input id="hf-n" name="note" type="text" maxlength="500" autocomplete="off" enterkeyhint="send"><button type="submit" class="hf-send">Send</button></span></form>
+    <input class="hf-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+  </div>
   <p><span>The Striper Recount</span> <span class="dot" aria-hidden="true">·</span> <a href="https://www.gotoneapp.com/labs">Part of GotOne Labs</a> <span class="dot" aria-hidden="true">·</span> <span>Produced by Luyen Chou and GotOne for the American Saltwater Guides Association</span> <span class="dot" aria-hidden="true">·</span> <span>Not a NOAA product</span> <span class="dot" aria-hidden="true">·</span> <span>Numbers as of Aug 31, 2026</span> <span class="dot" aria-hidden="true">·</span> <a href="about.html">About, sources and credits</a> <span class="dot" aria-hidden="true">·</span> <a href="#share" data-share="page">Share</a></p>
   <p class="sharemsg" role="status" aria-live="polite"></p>
 </footer>
@@ -42,14 +48,15 @@
     <li><a href="https://www.gotoneapp.com/" target="_blank" rel="noopener">Log your catches in GotOne</a> to improve recreational angling data. GotOne data goes to scientists, researchers, and state agencies. The shared data is anonymized, so you don’t blow your spots. <span class="disclose">GotOne co-produced this site.</span></li>
   </ul>
 </section></template>
-<script>window.RC_META={"url": "https://striperrecount.gotoneapp.com/", "credit": "Produced by Luyen Chou and GotOne for the American Saltwater Guides Association", "asOf": "Aug 31, 2026", "src": {"mrip": "https://www.fisheries.noaa.gov/recreational-fishing-data/fishing-effort-survey-research-and-improvements", "mripLog": "https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-estimate-updates", "fes": "https://www.fisheries.noaa.gov/resource/document/test-revised-fishing-effort-survey-2025-study-report", "asmfc": "https://asmfc.org/species/atlantic-striped-bass/", "dmf": "https://doi.org/10.2139/ssrn.7049791", "asga": "https://www.saltwaterguidesassociation.com/", "gotone": "https://www.gotoneapp.com/", "labs": "https://www.gotoneapp.com/labs"}, "shareText": "The Striper Recount: a 4-minute cartoon song about NOAA’s striped bass recount, plus the numbers to play with."};</script>
+<script>window.RC_META={"url": "https://striperrecount.gotoneapp.com/", "credit": "Produced by Luyen Chou and GotOne for the American Saltwater Guides Association", "asOf": "Aug 31, 2026", "src": {"mrip": "https://www.fisheries.noaa.gov/recreational-fishing-data/fishing-effort-survey-research-and-improvements", "mripLog": "https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-estimate-updates", "fes": "https://www.fisheries.noaa.gov/resource/document/test-revised-fishing-effort-survey-2025-study-report", "asmfc": "https://asmfc.org/species/atlantic-striped-bass/", "dmf": "https://doi.org/10.2139/ssrn.7049791", "asga": "https://www.saltwaterguidesassociation.com/", "gotone": "https://www.gotoneapp.com/", "labs": "https://www.gotoneapp.com/labs"}, "shareText": "The Striper Recount: a 4-minute cartoon song about NOAA’s striped bass recount, plus the numbers to play with.", "labsApi": "https://labs.gotoneapp.com"};</script>
+<script src="assets/labs-count.js?v=665ea480" data-page="recount/pie"></script>
 <script src="assets/engine.js?v=059f5ee4"></script>
 <script src="assets/kit.js?v=9514e4a2"></script>
 <script src="assets/characters.js?v=803fe709"></script>
 <script src="assets/data.js?v=31f13756"></script>
 <script src="assets/answers.js?v=afebcc8f"></script>
-<script src="assets/frame.js?v=8812d618"></script>
-<script src="assets/site.js?v=8cf86c75"></script>
+<script src="assets/frame.js?v=a46fc82a"></script>
+<script src="assets/site.js?v=32a443ca"></script>
 <script src="assets/sets.js?v=d7dff41b"></script>
 <script src="assets/pages/count.js?v=eec4bb44"></script>
 <script src="assets/pages/calendar.js?v=608d21c6"></script>
@@ -57,7 +64,7 @@
 <script src="assets/pages/pie.js?v=43dc8043"></script>
 <script src="assets/pages/removals.js?v=68f1137f"></script>
 <script src="assets/pages/states.js?v=3f0609e2"></script>
-<script src="assets/pages/next.js?v=9070a875"></script>
+<script src="assets/pages/next.js?v=6511b049"></script>
 <script>SITE.boot();</script>
 </body>
 </html>

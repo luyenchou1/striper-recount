@@ -424,11 +424,61 @@
     var sec = t.closest('section');
     S.pages.forEach(function (p) { if (p._dot && sec && p.id === sec.id) p._dot.classList.add('got'); });
   }
+  /* ---------- GotOne Labs counts (assets/labs-count.js sends each name once per page view) ---------- */
+  /* reach_<id>: the page's section comes into view; turn_<id>: the reader's first use of its Your turn gesture
+     (scrolly() below); end_<id>: its closing is reached (S.reward). */
+  function count(name) { try { if (window.GotOneLabs) window.GotOneLabs.event(name); } catch (e) {} }
+  S.count = count;
+  // fn() once, the first time part of el shows in the band of the screen that rootMargin leaves
+  function onceSeen(el, margin, fn) {
+    if (!el || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (es) {
+      if (!es.some(function (x) { return x.isIntersecting; })) return;
+      io.disconnect(); fn();
+    }, { rootMargin: margin });
+    io.observe(el);
+  }
+  // the section counts as reached once part of it is between a fifth and two thirds of the way down the screen
+  // (a jump from the chapter line passes over the sections in between, and the one above the target, whose
+  // last strip can sit under the top bar, stays out)
+  function reached(sec, id) { onceSeen(sec, '-20% 0px -35% 0px', function () { count('reach_' + id); }); }
+  // the closing counts when S.reward runs and the closing block is on screen below the top sixth: a jump to the
+  // next page can step the page above to its closing off screen, and that one counts only if the reader comes back
+  function ended(api) {
+    if (!api.id || api._endWatch) return;
+    api._endWatch = true;
+    onceSeen(api.panel, '-15% 0px 0px 0px', function () { count('end_' + api.id); });
+  }
+  /* the first real use of a scrolly page's Your turn gesture, while the section is playing: a pointer pressed and
+     released on the picture (a touch that turns into a scroll is cancelled instead) or on a control in the bar
+     under it, or a key or an input on one of those controls. A control in a Your turn card (page 7's flip
+     cards) counts whenever it is used. The keyboard helper "Try it: go to the controls", the bar's bare
+     background and the cards themselves don't count. */
+  function turnWatch(sec, id, stageHost) {
+    var Q = '[data-hit],input,button,select,textarea,[tabindex="0"],[role="slider"],[role="radio"],[role="button"],[role="checkbox"],[role="switch"]';
+    var armed = null, done = false;
+    function ok(e, q) {
+      if (done || !e.isTrusted || !e.target || !e.target.closest) return false;
+      var c = e.target.closest(q);
+      if (!c || !sec.contains(c) || c.classList.contains('tryit')) return false;
+      if (c.closest('.step.turn')) return true;
+      return sec.classList.contains('playing') && stageHost.contains(c);
+    }
+    function fire() { done = true; count('turn_' + id); }
+    sec.addEventListener('pointerdown', function (e) { armed = ok(e, Q + ',svg.stage') ? e.pointerId : null; }, true);
+    sec.addEventListener('pointerup', function (e) { if (armed !== null && e.pointerId === armed && !done) fire(); armed = null; }, true);
+    sec.addEventListener('pointercancel', function () { armed = null; }, true);
+    sec.addEventListener('keydown', function (e) { if (!/^(Tab|Shift|Control|Alt|Meta|Escape|CapsLock|Dead|Unidentified)$/.test(e.key) && ok(e, Q)) fire(); }, true);
+    sec.addEventListener('input', function (e) { if (ok(e, Q)) fire(); }, true);
+    sec.addEventListener('click', function (e) { if (e.detail === 0 && ok(e, Q)) fire(); }, true);      // a screen reader's click
+  }
+
   /* S.reward(api): one reward beat at a page's closing (A2, F6). The takeaway swings in on its thumbtack; at
      600 ms GOT IT lands and the card jolts as it bottoms out; at 1000 ms the Next button squashes, hops and its
      fish leaps. The first arrival gets the whole beat; coming back to the closing just hops Next again.
      Reduced motion: the stamp simply appears and Next gets a still dashed outline. */
   S.reward = function (api) {
+    ended(api);
     var t = api._take, nx = api.nav && api.nav.querySelector('.btn'), first = !api._rewarded;
     api._rewarded = true;
     if (reduce) { stampGot(api); if (nx) nx.classList.add('hop'); return; }
@@ -510,13 +560,14 @@
     pages.forEach(function (p, i) {
       if (mode === 'single' && p.id !== only) return;
       var sec = el('section', { class: 'ch', id: p.id, 'aria-labelledby': p.id + '-h' }, main);
+      reached(sec, p.id);
       if (p.scrolly) { scrolly(p, i, sec); dress(sec, p, i); return; }
       var stageHost = el('div', { class: 'ch-stage' }, sec);
       var panel = el('div', { class: 'ch-panel' }, sec);
       el('p', { class: 'kicker' }, panel, (i + 1) + ' of ' + pages.length + ' · ' + p.short);
       el('h2', { id: p.id + '-h' }, panel, p.title);
       var api = {
-        panel: panel, stageHost: stageHost,
+        id: p.id, panel: panel, stageHost: stageHost,
         stage: function (draw, label) { return S.stage(stageHost, draw, label); },
         lede: function (h) { return el('p', { class: 'lede' }, panel, h); },
         take: function (h) { var t = el('p', { class: 'take' }, panel, h); api._take = t; return t; },
@@ -553,7 +604,7 @@
       var text = el('div', { class: 'sc-text' }, sec), end = el('div', { class: 'sc-end' }, text);
       var bar = el('div', { class: 'sc-bar' }, stageHost), steps = [], cbs = [], cur = -1, stages = [];
       var api = {
-        panel: end, stageHost: stageHost, bar: bar,
+        id: p.id, panel: end, stageHost: stageHost, bar: bar,
         stage: function (draw, label) { var st = S.stage(stageHost, draw, label); stageHost.insertBefore(st.svg, bar); stages.push(st); return st; },
         step: function (h, cls) { var s = el('div', { class: 'step' + (cls ? ' ' + cls : '') }, null, h); text.insertBefore(s, end); steps.push(s); return s; },
         onStep: function (fn) { cbs.push(fn); },
@@ -584,6 +635,7 @@
       try { p.build(api); } catch (e) { el('p', { class: 'note' }, end, 'This interactive hit an error: ' + K.esc(e.message)); if (window.console) console.error(e); }
       api.nav = navrow(end, i);
       p._sec = sec;
+      turnWatch(sec, p.id, stageHost);
       var all = steps.concat([end]);
       /* keyboard (UX 1.4a): each Your turn card carries "Try it: go to the controls", hidden until focused. It
          brings the card to the trigger line (which opens the controls) and focuses the first control: one in

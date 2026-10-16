@@ -692,6 +692,7 @@ SITE.register({
     // the four answers, the credit and the site's address: the share sheet on phones, else the clipboard
     // (the same code as the footer's Share link, in frame.js)
     copyBtn.addEventListener('click', function () {
+      FRAME.count('share_four');
       var txt = FRAME.fourText();
       FRAME.share({ title: 'The Striper Recount', text: txt, copy: txt }, { msg: copyMsg, fall: fall });
     });
